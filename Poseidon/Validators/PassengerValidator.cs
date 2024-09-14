@@ -1,8 +1,9 @@
 ﻿using FluentValidation;
+using Poseidon.DTOs;
 
 namespace Poseidon.Validators
 {
-    public class CreatePassengerValidator : AbstractValidator<CreatePassengerDTO>
+    public class CreatePassengerValidator : AbstractValidator<PassengerDTO>
     {
         public CreatePassengerValidator()
         {
@@ -25,7 +26,7 @@ namespace Poseidon.Validators
         }
     }
 
-    public class UpdatePassengerValidator : AbstractValidator<UpdatePassengerDTO>
+    public class UpdatePassengerValidator : AbstractValidator<PassengerDTO>
     {
         public UpdatePassengerValidator()
         {

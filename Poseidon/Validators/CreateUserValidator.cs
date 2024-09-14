@@ -20,7 +20,7 @@ namespace Poseidon.Validators
         }
     }
 
-    public class UpdateUserValidator : AbstractValidator<Poseidon.DTOs.UpdateUserDTO>
+    public class UpdateUserValidator : AbstractValidator<Poseidon.DTOs.UserDTO>
     {
         public UpdateUserValidator()
         {
