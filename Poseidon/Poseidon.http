@@ -1,0 +1,6 @@
+@Poseidon_HostAddress = http://localhost:5070
+
+GET {{Poseidon_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
