@@ -16,6 +16,7 @@ namespace Poseidon.Data
         }
 
         public IMongoCollection<Passenger> Passengers => _database.GetCollection<Passenger>("Passengers");
+        public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
 
         // Other collections can be added similarly in the future.
     }
