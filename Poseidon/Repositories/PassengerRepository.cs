@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 using Poseidon.Data;
-using Poseidon.Interfaces.Repositories;
+using Poseidon.Interfaces.IRepositories;
 using Poseidon.Models;
 
 namespace Poseidon.Repositories

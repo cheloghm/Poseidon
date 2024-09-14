@@ -1,5 +1,5 @@
-﻿using Poseidon.Interfaces.Repositories;
-using Poseidon.Interfaces.Services;
+﻿using Poseidon.Interfaces.IRepositories;
+using Poseidon.Interfaces.IServices;
 using Poseidon.Models;
 using Poseidon.Repositories;
 using System.Threading.Tasks;

@@ -2,8 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using Poseidon.Config;
 using Poseidon.Data;
-using Poseidon.Interfaces.IRepositories;
 using Poseidon.Interfaces.IServices;
 using Poseidon.Repositories;
 using Poseidon.Services;
@@ -14,11 +14,11 @@ namespace Poseidon.Extensions
     {
         public static IServiceCollection AddMongoDb(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<MongoDbConfig>(configuration.GetSection("MongoDbConfig"));
+            services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
 
             services.AddSingleton<IMongoClient>(sp =>
             {
-                var mongoDbConfig = sp.GetRequiredService<IOptions<MongoDbConfig>>().Value;
+                var mongoDbConfig = sp.GetRequiredService<IOptions<DatabaseConfig>>().Value;
                 return new MongoClient(mongoDbConfig.ConnectionString);
             });
 
@@ -27,7 +27,7 @@ namespace Poseidon.Extensions
             return services;
         }
 
-        public static IServiceCollection AddCustomServices(this IServiceCollection services)
+        public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPassengerService, PassengerService>();
