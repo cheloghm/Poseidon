@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using Poseidon.Config;
 using Poseidon.Data;
 using Poseidon.Interfaces.IServices;
+using Poseidon.Interfaces.IRepositories;
 using Poseidon.Repositories;
 using Poseidon.Services;
 
