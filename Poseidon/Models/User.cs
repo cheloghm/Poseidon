@@ -13,8 +13,13 @@ namespace Poseidon.Models
         [BsonElement("Username")]
         public string Username { get; set; }
 
-        [BsonElement("Password")]
+        [BsonElement("Email")]
+        public string Email { get; set; }
+
+        [BsonElement("PasswordHash")]
         public string PasswordHash { get; set; }
+
+        [BsonElement("Role")]
         public Role Role { get; set; }
     }
 }
