@@ -1,4 +1,10 @@
-﻿severity:
-  - HIGH
-  - CRITICAL
+﻿severity: HIGH,CRITICAL
 ignore-unfixed: true
+vuln-type: os,library
+exit-code: 0
+skip-update: false
+cache-dir: /root/.cache/trivy
+timeout: 5m
+ignorefile: .trivyignore
+output: trivy-report.html
+format: html 

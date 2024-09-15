@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Poseidon.Data;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Models;
@@ -21,14 +22,18 @@ namespace Poseidon.Repositories
             return await _collection.Find(p => p.Sex.ToLower() == sex.ToLower()).ToListAsync();
         }
 
-        public async Task<IEnumerable<Passenger>> GetByAgeRangeAsync(int minAge, int maxAge)
+        public async Task<IEnumerable<Passenger>> GetByAgeRangeAsync(double minAge, double maxAge)
         {
             return await _collection.Find(p => p.Age >= minAge && p.Age <= maxAge).ToListAsync();
         }
 
-        public async Task<IEnumerable<Passenger>> GetByFareRangeAsync(decimal minFare, decimal maxFare)
+        public async Task<IEnumerable<Passenger>> GetByFareRangeAsync(double minFare, double maxFare)
         {
-            return await _collection.Find(p => (decimal)p.Fare >= minFare && (decimal)p.Fare <= maxFare).ToListAsync();
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Gte(p => p.Fare, minFare),
+                Builders<Passenger>.Filter.Lte(p => p.Fare, maxFare)
+            );
+            return await _collection.Find(filter).ToListAsync();
         }
 
         public async Task<IEnumerable<Passenger>> GetSurvivorsAsync()
@@ -43,5 +48,18 @@ namespace Poseidon.Repositories
 
             return (double)survivors / totalPassengers * 100;
         }
+
+        public async Task UpdateAsync(string id, Passenger passenger)
+        {
+            var objectId = ObjectId.Parse(id); // Parse string ID to ObjectId
+            var filter = Builders<Passenger>.Filter.Eq("_id", objectId); // Use "_id" for ObjectId filter
+            var result = await _collection.ReplaceOneAsync(filter, passenger);
+
+            if (result.MatchedCount == 0)
+            {
+                throw new Exception($"No passenger found with ID: {id}");
+            }
+        }
+
     }
 }

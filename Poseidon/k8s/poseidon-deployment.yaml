@@ -1,0 +1,72 @@
+﻿---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poseidon-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poseidon
+  template:
+    metadata:
+      labels:
+        app: poseidon
+    spec:
+      containers:
+        - name: poseidon-api
+          image: cheloghm/poseidon-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # Use values from ConfigMap
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: poseidon-config
+                  key: MONGO_DB_NAME
+
+            # Use values from Secret (already base64 encoded)
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: MONGO_INITDB_ROOT_USERNAME
+
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: MONGO_INITDB_ROOT_PASSWORD
+
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_KEY
+
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_ISSUER
+
+            - name: JWT_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_AUDIENCE
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20

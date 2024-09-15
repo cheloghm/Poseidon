@@ -16,10 +16,11 @@ namespace Poseidon.Repositories
             _tokens = context.Tokens;  // Get the Token collection from PoseidonContext
         }
 
-        public async Task RemoveExpiredTokens()
+        public async Task<long> RemoveExpiredTokens() // Return long to indicate the count of deleted tokens
         {
             var filter = Builders<Token>.Filter.Lt(t => t.Expiration, DateTime.UtcNow);
-            await _tokens.DeleteManyAsync(filter);
+            var deleteResult = await _tokens.DeleteManyAsync(filter);
+            return deleteResult.DeletedCount;  // Return the count of deleted tokens
         }
     }
 }

@@ -1,0 +1,7 @@
+﻿---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poseidon-config
+data:
+  MONGO_DB_NAME: "PoseidonDB"

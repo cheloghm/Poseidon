@@ -1,4 +1,6 @@
 using Poseidon.Extensions;
+using Poseidon.Middlewares;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,21 +8,39 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.ConfigureSerilog();
 
 // Add services to the container.
-
-// Add MongoDB configuration and repository services
 builder.Services.AddMongoDb(builder.Configuration);
 
 // Register all services (UserService, PassengerService, etc.)
 builder.Services.AddServices();
 
+// Register PasswordHash
+builder.Services.PasswordHash();
+
 // Register all repositories (UserRepository, PassengerRepository, etc.)
 builder.Services.AddRepositories();
+
+// Register JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// Add Swagger with JWT Auth
+builder.Services.AddSwaggerWithJwtAuth();
 
 // Add AutoMapper Profiles
 builder.Services.AddAutoMapperProfiles();
 
 // Add background tasks
 builder.Services.AddBackgroundTasks();
+
+// Add EventHandlers
+builder.Services.AddEventHandlers();
+
+// Add MemoryCache for rate limiting
+builder.Services.AddMemoryCache();
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddCheck("Liveness", () => HealthCheckResult.Healthy("Liveness probe passed"))
+    .AddCheck("Readiness", () => HealthCheckResult.Healthy("Readiness probe passed"));
 
 // Add controllers
 builder.Services.AddControllers();
@@ -34,14 +54,35 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
+
+// Use Swagger middleware
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Poseidon API v1");
+    c.RoutePrefix = string.Empty;  // Swagger UI will be served at the root URL
+});
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // Added to handle JWT authentication
+// Use Rate Limiting Middleware here
+app.UseMiddleware<RateLimitingMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Map health check endpoints for Kubernetes probes
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = (check) => check.Name == "Liveness"
+});
+
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = (check) => check.Name == "Readiness"
+});
 
 app.MapControllers();
 
