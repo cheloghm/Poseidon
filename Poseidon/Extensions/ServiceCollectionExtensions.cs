@@ -8,6 +8,12 @@ using Poseidon.Interfaces.IServices;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Repositories;
 using Poseidon.Services;
+using Poseidon.Mappers;
+using Poseidon.Utilities;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Poseidon.Interfaces.IUtility;
 
 namespace Poseidon.Extensions
 {
@@ -28,6 +34,37 @@ namespace Poseidon.Extensions
             return services;
         }
 
+        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            var jwtSection = configuration.GetSection("Jwt");
+
+            var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
+            var issuer = jwtSection["Issuer"];
+            var audience = jwtSection["Audience"];
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                };
+            });
+
+            services.AddSingleton<IJwtUtility>(sp => new JwtUtility(key, issuer, audience));
+            return services;
+        }
+
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
@@ -41,6 +78,12 @@ namespace Poseidon.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IPassengerRepository, PassengerRepository>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddAutoMapperProfiles(this IServiceCollection services)
+        {
+            services.AddAutoMapper(typeof(MappingProfile));
             return services;
         }
     }

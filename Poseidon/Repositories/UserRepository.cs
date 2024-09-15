@@ -2,6 +2,7 @@
 using Poseidon.Data;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Models;
+using Poseidon.Utilities;
 using System.Threading.Tasks;
 
 namespace Poseidon.Repositories
@@ -15,6 +16,18 @@ namespace Poseidon.Repositories
         public async Task<User> GetByEmailAsync(string email)
         {
             return await _collection.Find(u => u.Email == email).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ValidateUserCredentials(string email, string password)
+        {
+            var user = await GetByEmailAsync(email);
+
+            if (user == null || !PasswordHasher.VerifyHashedPassword(user.Password, password))
+            {
+                return false; // User not found or password incorrect
+            }
+
+            return true;
         }
     }
 }
