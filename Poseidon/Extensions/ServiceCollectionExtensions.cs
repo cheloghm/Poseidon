@@ -16,6 +16,10 @@ using Microsoft.IdentityModel.Tokens;
 using Poseidon.Interfaces.IUtility;
 using Poseidon.BackgroundTasks;
 using Poseidon.Interfaces;
+using Poseidon.Events;
+using Poseidon.EventHandlers;
+using Poseidon.Filters;
+using System;
 
 namespace Poseidon.Extensions
 {
@@ -93,7 +97,22 @@ namespace Poseidon.Extensions
         public static IServiceCollection AddBackgroundTasks(this IServiceCollection services)
         {
             services.AddHostedService<CleanupExpiredTokensTask>();
-            // Add other background tasks as necessary
+            return services;
+        }
+
+        public static IServiceCollection AddEvents(this IServiceCollection services)
+        {
+            services.AddSingleton<IEventHandler<PassengerCreatedEvent>, PassengerCreatedEventHandler>();
+            services.AddSingleton<IEventHandler<UserUpdatedEvent>, UserUpdatedEventHandler>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFilters(this IServiceCollection services)
+        {
+            services.AddScoped<LoggingActionFilter>();
+            services.AddScoped<AdminAuthorizationFilter>();
+
             return services;
         }
     }

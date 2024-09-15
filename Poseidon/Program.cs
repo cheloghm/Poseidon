@@ -2,6 +2,9 @@ using Poseidon.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Serilog via extension method
+builder.Host.ConfigureSerilog();
+
 // Add services to the container.
 
 // Add MongoDB configuration and repository services
@@ -12,6 +15,12 @@ builder.Services.AddServices();
 
 // Register all repositories (UserRepository, PassengerRepository, etc.)
 builder.Services.AddRepositories();
+
+// Add AutoMapper Profiles
+builder.Services.AddAutoMapperProfiles();
+
+// Add background tasks
+builder.Services.AddBackgroundTasks();
 
 // Add controllers
 builder.Services.AddControllers();
@@ -31,6 +40,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // Added to handle JWT authentication
 app.UseAuthorization();
 
 app.MapControllers();
