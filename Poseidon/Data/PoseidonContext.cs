@@ -15,6 +15,8 @@ namespace Poseidon.Data
             _database = client.GetDatabase(config.Value.DatabaseName);
         }
 
+        public IMongoDatabase Database => _database; // Add this line to expose the _database for Testing
+
         public IMongoCollection<Passenger> Passengers => _database.GetCollection<Passenger>("Passengers");
         public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
         public IMongoCollection<Token> Tokens => _database.GetCollection<Token>("Tokens");

@@ -1,4 +1,6 @@
-﻿using Poseidon.Interfaces.IRepositories;
+﻿using MongoDB.Bson;
+using Poseidon.DTOs;
+using Poseidon.Interfaces.IRepositories;
 using Poseidon.Interfaces.IServices;
 using Poseidon.Models;
 using System.Collections.Generic;
@@ -25,12 +27,12 @@ namespace Poseidon.Services
             return await _passengerRepository.GetByGenderAsync(sex);
         }
 
-        public async Task<IEnumerable<Passenger>> GetByAgeRangeAsync(int minAge, int maxAge)
+        public async Task<IEnumerable<Passenger>> GetByAgeRangeAsync(double minAge, double maxAge)
         {
             return await _passengerRepository.GetByAgeRangeAsync(minAge, maxAge);
         }
 
-        public async Task<IEnumerable<Passenger>> GetByFareRangeAsync(decimal minFare, decimal maxFare)
+        public async Task<IEnumerable<Passenger>> GetByFareRangeAsync(double minFare, double maxFare)
         {
             return await _passengerRepository.GetByFareRangeAsync(minFare, maxFare);
         }
@@ -44,5 +46,11 @@ namespace Poseidon.Services
         {
             return await _passengerRepository.GetSurvivalRateAsync();
         }
+
+        public async Task UpdateAsync(string id, Passenger passenger)
+        {
+            await _passengerRepository.UpdateAsync(id, passenger);
+        }
+
     }
 }

@@ -4,6 +4,6 @@ namespace Poseidon.Interfaces
 {
     public interface ITokenRepository
     {
-        Task RemoveExpiredTokens();
+        Task<long> RemoveExpiredTokens();
     }
 }

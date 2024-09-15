@@ -19,6 +19,7 @@ namespace Poseidon.Models
         [BsonElement("Password")]
         public string Password { get; set; }
 
+        [BsonRepresentation(BsonType.String)]
         [BsonElement("Role")]
         public Role Role { get; set; }
     }

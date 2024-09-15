@@ -18,6 +18,11 @@ namespace Poseidon.Repositories
             return await _collection.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
+        public async Task<User> GetByUsernameAsync(string username)
+        {
+            return await _collection.Find(u => u.Username == username).FirstOrDefaultAsync();
+        }
+
         public async Task<bool> ValidateUserCredentials(string email, string password)
         {
             var user = await GetByEmailAsync(email);

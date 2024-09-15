@@ -6,7 +6,8 @@ namespace Poseidon.Models
     public class Passenger
     {
         [BsonId]
-        public ObjectId Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
 
         [BsonElement("Survived")]
         public int Survived { get; set; }
@@ -21,7 +22,7 @@ namespace Poseidon.Models
         public string Sex { get; set; }
 
         [BsonElement("Age")]
-        public int? Age { get; set; } // Nullable to account for missing data
+        public double? Age { get; set; }
 
         [BsonElement("Siblings/Spouses Aboard")]
         public int SiblingsOrSpousesAboard { get; set; }

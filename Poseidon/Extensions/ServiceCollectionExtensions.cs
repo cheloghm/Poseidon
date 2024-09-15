@@ -20,6 +20,12 @@ using Poseidon.Events;
 using Poseidon.EventHandlers;
 using Poseidon.Filters;
 using System;
+using Poseidon.Interfaces.IEventHandlers;
+using Microsoft.AspNetCore.Identity;
+using Poseidon.Models;
+using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Reflection;
 
 namespace Poseidon.Extensions
 {
@@ -27,7 +33,8 @@ namespace Poseidon.Extensions
     {
         public static IServiceCollection AddMongoDb(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
+            // Ensure the MongoDbConfig section is properly bound to the DatabaseConfig class.
+            services.Configure<DatabaseConfig>(configuration.GetSection("MongoDbConfig"));
 
             services.AddSingleton<IMongoClient>(sp =>
             {
@@ -63,18 +70,96 @@ namespace Poseidon.Extensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = issuer,
                     ValidAudience = audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    RoleClaimType = ClaimTypes.Role,
+                    SaveSigninToken = true // This ensures that the token doesn't need the Bearer prefix.
+                };
+
+                // Disable the default 'Bearer' requirement by overriding the OnMessageReceived event
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Check if the token is already prefixed with 'Bearer'
+                        if (context.Request.Headers.ContainsKey("Authorization"))
+                        {
+                            var token = context.Request.Headers["Authorization"].ToString();
+
+                            // If the token starts with "Bearer", we remove it
+                            if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.Token = token.Substring("Bearer ".Length).Trim();
+                            }
+                            else
+                            {
+                                context.Token = token; // Directly use the token without Bearer
+                            }
+                        }
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
             services.AddSingleton<IJwtUtility>(sp => new JwtUtility(key, issuer, audience));
+
             return services;
         }
 
+        public static IServiceCollection AddSwaggerWithJwtAuth(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Poseidon API", Version = "v1" });
+
+                // Define the security scheme for JWT authentication in Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "Enter your JWT token directly, without 'Bearer' prefix.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.OperationFilter<SwaggerAddBearerTokenOperationFilter>();
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
+
+                // Enable XML comments in Swagger UI if you want to include detailed API documentation
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
+            return services;
+        }
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPassengerService, PassengerService>();
+
+            return services;
+        }
+
+        public static IServiceCollection PasswordHash(this IServiceCollection services)
+        {
+            services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             return services;
         }
@@ -108,10 +193,18 @@ namespace Poseidon.Extensions
             return services;
         }
 
+        public static IServiceCollection AddEventHandlers(this IServiceCollection services)
+        {
+            // Register event handlers for handling specific events
+            services.AddSingleton<IEventHandler<PassengerCreatedEvent>, PassengerCreatedEventHandler>();
+            services.AddSingleton<IEventHandler<UserUpdatedEvent>, UserUpdatedEventHandler>();
+
+            return services;
+        }
+
         public static IServiceCollection AddFilters(this IServiceCollection services)
         {
             services.AddScoped<LoggingActionFilter>();
-            services.AddScoped<AdminAuthorizationFilter>();
 
             return services;
         }
