@@ -1,5 +1,4 @@
-﻿---
-apiVersion: apps/v1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: poseidon-api
@@ -19,7 +18,7 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            # MongoDB connection string
+            # MongoDB connection string for Kubernetes
             - name: MONGO_CONNECTION_STRING
               value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@poseidon-mongodb:27017/$(MONGO_DB_NAME)?authSource=admin"
 
@@ -43,7 +42,7 @@ spec:
                   name: poseidon-secrets
                   key: MONGO_INITDB_ROOT_PASSWORD
 
-            # JWT values
+            # JWT values from Secrets
             - name: JWT_KEY
               valueFrom:
                 secretKeyRef:
