@@ -1,8 +1,15 @@
 using Poseidon.Extensions;
 using Poseidon.Middlewares;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using DotNetEnv;
+using Poseidon.Interfaces.IUtility;
+using Poseidon.Utilities;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load the .env file
+Env.Load();
 
 // Configure Serilog via extension method
 builder.Host.ConfigureSerilog();
@@ -21,6 +28,18 @@ builder.Services.AddRepositories();
 
 // Register JWT Authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// Register IJwtUtility in the service collection.
+builder.Services.AddSingleton<IJwtUtility>(sp =>
+{
+    var jwtSection = sp.GetRequiredService<IConfiguration>().GetSection("Jwt");
+
+    var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
+    var issuer = jwtSection["Issuer"];
+    var audience = jwtSection["Audience"];
+
+    return new JwtUtility(key, issuer, audience);
+});
 
 // Add Swagger with JWT Auth
 builder.Services.AddSwaggerWithJwtAuth();
@@ -49,7 +68,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
