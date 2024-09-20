@@ -1,9 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mongo-init-configmap
-data:
-  init-mongo.sh: |
-    #!/bin/bash
-    mongoimport --host localhost --db ${MONGO_DB_NAME} --collection Passengers --type csv --headerline --file /docker-entrypoint-initdb.d/titanic.csv
