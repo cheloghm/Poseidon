@@ -76,12 +76,20 @@ app.UseAuthorization();
 // Map health check endpoints for Kubernetes probes
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = (check) => check.Name == "Liveness"
+    Predicate = (check) => check.Name == "Liveness",
+    ResponseWriter = async (context, report) =>
+    {
+        await context.Response.WriteAsync("Liveness probe: OK!");
+    }
 });
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = (check) => check.Name == "Readiness"
+    Predicate = (check) => check.Name == "Readiness",
+    ResponseWriter = async (context, report) =>
+    {
+        await context.Response.WriteAsync("Readiness probe: Ready to go!");
+    }
 });
 
 app.MapControllers();
