@@ -27,6 +27,13 @@ namespace Poseidon.Services
 
         public async Task<User> CreateUserAsync(CreateUserDTO createUserDTO)
         {
+             createUserDTO.Id = null;
+            // Validate role at the service level
+            if (createUserDTO.Role != "Admin" && createUserDTO.Role != "User")
+            {
+                throw new Exception("Role must be either 'Admin' or 'User'.");
+            }
+
             // Check for unique email and username
             var existingEmail = await _userRepository.GetByEmailAsync(createUserDTO.Email);
             if (existingEmail != null)
@@ -48,7 +55,7 @@ namespace Poseidon.Services
 
             await _userRepository.CreateAsync(user);
 
-            return user; // Return the created user as Task<User>
+            return user;
         }
 
         public async Task UpdateUserAsync(string id, UserDTO userDTO)
