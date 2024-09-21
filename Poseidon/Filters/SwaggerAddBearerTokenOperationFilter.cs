@@ -7,36 +7,39 @@ namespace Poseidon.Filters
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
+            // Check if the operation has an "Authorization" header
             var authHeader = operation.Parameters?.FirstOrDefault(p => p.Name == "Authorization");
 
+            // Set the header description to not require "Bearer" prefix
             if (authHeader != null && authHeader.Name == "Authorization")
             {
                 authHeader.Description = "JWT Token (without Bearer prefix)";
             }
 
-            // Automatically add Bearer prefix to the token for all operations
+            // Automatically add the security scheme for operations requiring authorization
             if (operation.Security == null)
             {
                 operation.Security = new List<OpenApiSecurityRequirement>();
             }
 
+            // Add the security scheme to all operations that need authentication
             operation.Security.Add(new OpenApiSecurityRequirement
-        {
             {
-                new OpenApiSecurityScheme
                 {
-                    Reference = new OpenApiReference
+                    new OpenApiSecurityScheme
                     {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "Bearer",
+                        Name = "Authorization",
+                        In = ParameterLocation.Header
                     },
-                    Scheme = "Bearer",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header
-                },
-                new List<string>()
-            }
-        });
+                    new List<string>()
+                }
+            });
         }
     }
 }

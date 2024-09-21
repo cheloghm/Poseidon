@@ -33,28 +33,18 @@ namespace Poseidon.Extensions
     {
         public static IServiceCollection AddMongoDb(this IServiceCollection services, IConfiguration configuration)
         {
-            // Ensure the MongoDbConfig section is properly bound to the DatabaseConfig class.
-            services.Configure<DatabaseConfig>(configuration.GetSection("MongoDbConfig"));
-
             services.AddSingleton<IMongoClient>(sp =>
             {
                 var mongoDbConfig = sp.GetRequiredService<IOptions<DatabaseConfig>>().Value;
-                return new MongoClient(mongoDbConfig.ConnectionString);
+                return new MongoClient(mongoDbConfig.ConnectionString);  // Uses the in-memory values from the environment variables
             });
 
             services.AddSingleton<PoseidonContext>();
-
             return services;
         }
 
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtSection = configuration.GetSection("Jwt");
-
-            var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
-            var issuer = jwtSection["Issuer"];
-            var audience = jwtSection["Audience"];
-
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -62,6 +52,10 @@ namespace Poseidon.Extensions
             })
             .AddJwtBearer(options =>
             {
+                var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY"));
+                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -70,29 +64,26 @@ namespace Poseidon.Extensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = issuer,
                     ValidAudience = audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    RoleClaimType = ClaimTypes.Role,
-                    SaveSigninToken = true // This ensures that the token doesn't need the Bearer prefix.
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
 
-                // Disable the default 'Bearer' requirement by overriding the OnMessageReceived event
+                // Add the event to handle tokens without the "Bearer" prefix
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        // Check if the token is already prefixed with 'Bearer'
                         if (context.Request.Headers.ContainsKey("Authorization"))
                         {
                             var token = context.Request.Headers["Authorization"].ToString();
 
-                            // If the token starts with "Bearer", we remove it
+                            // Remove the "Bearer " prefix if it's there
                             if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
                                 context.Token = token.Substring("Bearer ".Length).Trim();
                             }
                             else
                             {
-                                context.Token = token; // Directly use the token without Bearer
+                                context.Token = token; // Directly use the token without "Bearer"
                             }
                         }
 
@@ -100,8 +91,6 @@ namespace Poseidon.Extensions
                     }
                 };
             });
-
-            services.AddSingleton<IJwtUtility>(sp => new JwtUtility(key, issuer, audience));
 
             return services;
         }
@@ -122,33 +111,37 @@ namespace Poseidon.Extensions
                     Scheme = "Bearer"
                 });
 
+                // Use the SwaggerAddBearerTokenOperationFilter to automatically handle token validation
                 c.OperationFilter<SwaggerAddBearerTokenOperationFilter>();
 
+                // Add security requirements to Swagger to ensure it knows how to handle JWT tokens
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+                new OpenApiSecurityScheme
                 {
+                    Reference = new OpenApiReference
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "oauth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header
-                        },
-                        new List<string>()
-                    }
-                });
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    },
+                    Scheme = "oauth2",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header
+                },
+                new List<string>()
+            }
+        });
 
                 // Enable XML comments in Swagger UI if you want to include detailed API documentation
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
             return services;
         }
+
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();

@@ -1,74 +1,56 @@
+using DotNetEnv; // Import DotNetEnv
 using Poseidon.Extensions;
 using Poseidon.Middlewares;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using DotNetEnv;
 using Poseidon.Interfaces.IUtility;
 using Poseidon.Utilities;
 using System.Text;
+using Poseidon.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load the .env file
+// Load the .env file for local development
 Env.Load();
 
 // Configure Serilog via extension method
 builder.Host.ConfigureSerilog();
 
-// Add services to the container.
-builder.Services.AddMongoDb(builder.Configuration);
+// Get sensitive values from environment variables
+string mongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
+string mongoDbName = Environment.GetEnvironmentVariable("MONGO_DB_NAME");
+string jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
+string jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+string jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
-// Register all services (UserService, PassengerService, etc.)
-builder.Services.AddServices();
-
-// Register PasswordHash
-builder.Services.PasswordHash();
-
-// Register all repositories (UserRepository, PassengerRepository, etc.)
-builder.Services.AddRepositories();
-
-// Register JWT Authentication
-builder.Services.AddJwtAuthentication(builder.Configuration);
-
-// Register IJwtUtility in the service collection.
-builder.Services.AddSingleton<IJwtUtility>(sp =>
+// Set MongoDB config in-memory (override appsettings.json)
+builder.Services.Configure<DatabaseConfig>(options =>
 {
-    var jwtSection = sp.GetRequiredService<IConfiguration>().GetSection("Jwt");
-
-    var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
-    var issuer = jwtSection["Issuer"];
-    var audience = jwtSection["Audience"];
-
-    return new JwtUtility(key, issuer, audience);
+    options.ConnectionString = mongoConnectionString;
+    options.DatabaseName = mongoDbName;
 });
 
-// Add Swagger with JWT Auth
+// Set up JWT Authentication with environment variables
+builder.Services.AddSingleton<IJwtUtility>(sp => new JwtUtility(Encoding.UTF8.GetBytes(jwtKey), jwtIssuer, jwtAudience));
+
+// Add services to the container.
+builder.Services.AddMongoDb(builder.Configuration);  // MongoDB setup remains as-is, but using env variables
+builder.Services.AddServices();
+builder.Services.PasswordHash();
+builder.Services.AddRepositories();
+builder.Services.AddJwtAuthentication(builder.Configuration); // This will still use the Configuration object
 builder.Services.AddSwaggerWithJwtAuth();
-
-// Add AutoMapper Profiles
 builder.Services.AddAutoMapperProfiles();
-
-// Add background tasks
 builder.Services.AddBackgroundTasks();
-
-// Add EventHandlers
 builder.Services.AddEventHandlers();
-
-// Add MemoryCache for rate limiting
 builder.Services.AddMemoryCache();
-
-// Add health checks
 builder.Services.AddHealthChecks()
     .AddCheck("Liveness", () => HealthCheckResult.Healthy("Liveness probe passed"))
     .AddCheck("Readiness", () => HealthCheckResult.Healthy("Readiness probe passed"));
-
-// Add controllers
 builder.Services.AddControllers();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
- var app = builder.Build();
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -81,18 +63,14 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Poseidon API v1");
-    c.RoutePrefix = string.Empty;  // Swagger UI will be served at the root URL
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseHttpsRedirection();
-
-// Use Rate Limiting Middleware here
 app.UseMiddleware<RateLimitingMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map health check endpoints for Kubernetes probes
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     Predicate = (check) => check.Name == "Liveness",
