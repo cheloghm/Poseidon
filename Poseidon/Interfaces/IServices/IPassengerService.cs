@@ -1,4 +1,5 @@
-﻿using Poseidon.Models;
+﻿using Poseidon.DTOs;
+using Poseidon.Models;
 
 namespace Poseidon.Interfaces.IServices
 {
@@ -9,6 +10,7 @@ namespace Poseidon.Interfaces.IServices
         Task<IEnumerable<Passenger>> GetByAgeRangeAsync(double minAge, double maxAge);
         Task<IEnumerable<Passenger>> GetByFareRangeAsync(double minFare, double maxFare);
         Task<IEnumerable<Passenger>> GetSurvivorsAsync();
+        Task<Passenger> CreatePassengerAsync(PassengerDTO passengerDTO);
         Task<double> GetSurvivalRateAsync();
     }
 }

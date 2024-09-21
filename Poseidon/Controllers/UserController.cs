@@ -2,6 +2,7 @@
 using Poseidon.Interfaces.IServices;
 using Poseidon.DTOs;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Poseidon.Controllers
 {
@@ -17,6 +18,7 @@ namespace Poseidon.Controllers
         }
 
         [HttpPost("register")]
+        [SwaggerOperation(Summary = "Register a new user", Description = "Create a new user with the specified role. Role must be either 'Admin' or 'User'. Leave the ID field blank as MongoDB will generate it automatically.")]
         public async Task<IActionResult> Register([FromBody] CreateUserDTO createUserDTO)
         {
             var createdUser = await _userService.CreateUserAsync(createUserDTO); // Now it returns the created user with Id

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Poseidon.Helpers;
 using System.Linq;
 using System.Security.Claims;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Poseidon.Controllers
 {
@@ -95,7 +96,9 @@ namespace Poseidon.Controllers
             return Ok(passenger);
         }
 
+
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new passenger", Description = "Create a new passenger. Leave the ID field blank as MongoDB will generate it automatically.")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] PassengerDTO passengerDTO)
         {
@@ -103,6 +106,7 @@ namespace Poseidon.Controllers
             await _passengerService.CreateAsync(passenger);
             return CreatedAtAction(nameof(GetById), new { id = passenger.Id }, passenger);
         }
+
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]

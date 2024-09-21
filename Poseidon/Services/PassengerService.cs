@@ -1,8 +1,10 @@
-﻿using MongoDB.Bson;
+﻿using AutoMapper;
+using MongoDB.Bson;
 using Poseidon.DTOs;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Interfaces.IServices;
 using Poseidon.Models;
+using Poseidon.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,10 +13,12 @@ namespace Poseidon.Services
     public class PassengerService : Service<Passenger>, IPassengerService
     {
         private readonly IPassengerRepository _passengerRepository;
+        private readonly IMapper _mapper;
 
-        public PassengerService(IPassengerRepository passengerRepository) : base(passengerRepository)
+        public PassengerService(IPassengerRepository passengerRepository, IMapper mapper) : base(passengerRepository)
         {
             _passengerRepository = passengerRepository;
+            _mapper = mapper; // Make sure to initialize the _mapper
         }
 
         public async Task<IEnumerable<Passenger>> GetByClassAsync(int classNumber)
@@ -45,6 +49,17 @@ namespace Poseidon.Services
         public async Task<double> GetSurvivalRateAsync()
         {
             return await _passengerRepository.GetSurvivalRateAsync();
+        }
+
+        public async Task<Passenger> CreatePassengerAsync(PassengerDTO passengerDTO)
+        {
+            passengerDTO.Id = null; // Ensure the ID is set to null for MongoDB to generate it
+
+            // AutoMapper maps the DTO to the Passenger model
+            var passenger = _mapper.Map<Passenger>(passengerDTO);
+            await _passengerRepository.CreateAsync(passenger);
+
+            return passenger; // Return the created Passenger
         }
 
         public async Task UpdateAsync(string id, Passenger passenger)
