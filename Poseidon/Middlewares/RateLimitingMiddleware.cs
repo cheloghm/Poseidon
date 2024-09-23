@@ -18,8 +18,16 @@ namespace Poseidon.Middlewares
             _cache = cache;
         }
 
-        public async Task Invoke(HttpContext context)
+        // Updated to async
+        public async Task InvokeAsync(HttpContext context)
         {
+            // Bypass rate limiting for health checks
+            if (context.Request.Path.StartsWithSegments("/health"))
+            {
+                await _next(context);
+                return;
+            }
+
             var clientIp = context.Connection.RemoteIpAddress?.ToString();
             if (clientIp != null)
             {
@@ -40,7 +48,8 @@ namespace Poseidon.Middlewares
                 _cache.Set(key, requestCount + 1);
             }
 
-            await _next(context);
+            await _next(context);  // Awaiting next middleware
         }
     }
+
 }
