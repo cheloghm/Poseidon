@@ -26,6 +26,7 @@ using Poseidon.Models;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Reflection;
+using Poseidon.Interfaces.IBackgroundTasks;
 
 namespace Poseidon.Extensions
 {
@@ -36,7 +37,7 @@ namespace Poseidon.Extensions
             services.AddSingleton<IMongoClient>(sp =>
             {
                 var mongoDbConfig = sp.GetRequiredService<IOptions<DatabaseConfig>>().Value;
-                return new MongoClient(mongoDbConfig.ConnectionString);  // Uses the in-memory values from the environment variables
+                return new MongoClient(mongoDbConfig.ConnectionString);
             });
 
             services.AddSingleton<PoseidonContext>();
@@ -67,7 +68,6 @@ namespace Poseidon.Extensions
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
 
-                // Add the event to handle tokens without the "Bearer" prefix
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -76,14 +76,13 @@ namespace Poseidon.Extensions
                         {
                             var token = context.Request.Headers["Authorization"].ToString();
 
-                            // Remove the "Bearer " prefix if it's there
                             if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
                                 context.Token = token.Substring("Bearer ".Length).Trim();
                             }
                             else
                             {
-                                context.Token = token; // Directly use the token without "Bearer"
+                                context.Token = token;
                             }
                         }
 
@@ -101,7 +100,6 @@ namespace Poseidon.Extensions
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Poseidon API", Version = "v1" });
 
-                // Define the security scheme for JWT authentication in Swagger
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "Enter your JWT token directly, without 'Bearer' prefix.",
@@ -111,29 +109,26 @@ namespace Poseidon.Extensions
                     Scheme = "Bearer"
                 });
 
-                // Use the SwaggerAddBearerTokenOperationFilter to automatically handle token validation
                 c.OperationFilter<SwaggerAddBearerTokenOperationFilter>();
 
-                // Add security requirements to Swagger to ensure it knows how to handle JWT tokens
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-        {
-            {
-                new OpenApiSecurityScheme
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    Reference = new OpenApiReference
                     {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    },
-                    Scheme = "oauth2",
-                    Name = "Bearer",
-                    In = ParameterLocation.Header
-                },
-                new List<string>()
-            }
-        });
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
 
-                // Enable XML comments in Swagger UI if you want to include detailed API documentation
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -146,6 +141,7 @@ namespace Poseidon.Extensions
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPassengerService, PassengerService>();
+            services.AddScoped<ITokenService, TokenService>();
 
             return services;
         }
@@ -188,7 +184,6 @@ namespace Poseidon.Extensions
 
         public static IServiceCollection AddEventHandlers(this IServiceCollection services)
         {
-            // Register event handlers for handling specific events
             services.AddSingleton<IEventHandler<PassengerCreatedEvent>, PassengerCreatedEventHandler>();
             services.AddSingleton<IEventHandler<UserUpdatedEvent>, UserUpdatedEventHandler>();
 
