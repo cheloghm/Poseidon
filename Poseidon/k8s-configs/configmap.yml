@@ -4,4 +4,4 @@ kind: ConfigMap
 metadata:
   name: poseidon-config
 data:
-  MONGO_DB_NAME: "PoseidonDB"
+  MONGO_DB_NAME: PoseidonDBPod
