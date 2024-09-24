@@ -1,4 +1,4 @@
-﻿namespace Poseidon.Interfaces.IBackgroundTasks
+﻿namespace Poseidon.Interfaces.IServices
 {
     public interface ITokenService
     {

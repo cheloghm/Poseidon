@@ -16,7 +16,10 @@ Env.Load();
 builder.Host.ConfigureSerilog();
 
 // Get sensitive values from environment variables
-string mongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
+string mongoConnectionString = builder.Environment.IsDevelopment()
+    ? Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING_LOCAL")
+    : Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING_K8S");
+
 string mongoDbName = Environment.GetEnvironmentVariable("MONGO_DB_NAME");
 string jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
 string jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");

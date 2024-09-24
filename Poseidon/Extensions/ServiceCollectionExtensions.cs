@@ -26,7 +26,6 @@ using Poseidon.Models;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Reflection;
-using Poseidon.Interfaces.IBackgroundTasks;
 
 namespace Poseidon.Extensions
 {

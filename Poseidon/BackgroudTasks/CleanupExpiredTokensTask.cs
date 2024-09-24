@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Poseidon.Interfaces.IBackgroundTasks;
+using Poseidon.Interfaces.IServices;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

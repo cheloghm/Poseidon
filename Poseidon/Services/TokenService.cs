@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Poseidon.Interfaces;
-using Poseidon.Interfaces.IBackgroundTasks;
+using Poseidon.Interfaces.IServices;
 
 namespace Poseidon.Services
 {
