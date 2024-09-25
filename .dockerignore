@@ -28,3 +28,20 @@ README.md
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
+
+# Ignore Mongo-seed directory
+Mongo-seed/
+
+# Ignore test project files
+Poseidon.Tests/
+
+# Ignore log files
+logs/
+
+# Ignore temp and build files
+bin/
+obj/
+
+# Ignore configuration files that are environment-specific or not required for the image
+.env
+appsettings.Development.json

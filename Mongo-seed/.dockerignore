@@ -1,0 +1,7 @@
+# Ignore everything first
+*
+
+# Don't ignore the Dockerfile and necessary files for Mongo-seed
+!/Dockerfile
+!/init-mongo.sh
+!/titanic.csv
