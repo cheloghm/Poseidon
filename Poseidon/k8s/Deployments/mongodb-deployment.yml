@@ -1,4 +1,5 @@
-﻿apiVersion: apps/v1
+﻿---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: poseidon-mongodb
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: cheloghm/poseidon-mongodb-seed:1.6
+          image: cheloghm/poseidon-mongodb-seed:2.0
           ports:
             - containerPort: 27017
           env:
@@ -33,3 +34,5 @@ spec:
                 configMapKeyRef:
                   name: poseidon-config
                   key: MONGO_DB_NAME
+            - name: ENVIRONMENT  # <-- Add this line
+              value: kubernetes
