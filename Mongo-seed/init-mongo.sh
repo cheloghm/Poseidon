@@ -2,12 +2,15 @@
 
 echo "Starting MongoDB seeding script..."
 
+# Set MONGO_HOST and adjust the database name based on the environment
 if [ "$ENVIRONMENT" == "docker-compose" ]; then
   MONGO_HOST=mongodb
-  echo "Running in Docker Compose environment..."
+  MONGO_DB_NAME="${MONGO_DB_NAME}Docker"
+  echo "Running in Docker Compose environment. Using database name: $MONGO_DB_NAME"
 elif [ "$ENVIRONMENT" == "kubernetes" ]; then
   MONGO_HOST=localhost  # or use the appropriate service name in Kubernetes
-  echo "Running in Kubernetes environment..."
+  MONGO_DB_NAME="${MONGO_DB_NAME}K8s"
+  echo "Running in Kubernetes environment. Using database name: $MONGO_DB_NAME"
 else
   echo "Unknown environment: $ENVIRONMENT"
   exit 1
