@@ -12,18 +12,26 @@ WORKDIR /src
 
 # Copy main API project and restore dependencies
 COPY Poseidon/Poseidon.csproj Poseidon/
+COPY Poseidon.Tests/Poseidon.Tests.csproj Poseidon.Tests/
 RUN dotnet restore "Poseidon/Poseidon.csproj"
+RUN dotnet restore "Poseidon.Tests/Poseidon.Tests.csproj"
 
 # Copy the rest of the application code
 COPY Poseidon/ Poseidon/
+COPY Poseidon.Tests/ Poseidon.Tests/
 
 # Build the main API project
 WORKDIR "/src/Poseidon"
 RUN dotnet build "Poseidon.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
+# Also build the test project
+WORKDIR "/src/Poseidon.Tests"
+RUN dotnet build "Poseidon.Tests.csproj" -c $BUILD_CONFIGURATION
+
 # Stage 3: Publish the application
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/Poseidon"
 RUN dotnet publish "Poseidon.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Stage 4: Final runtime image

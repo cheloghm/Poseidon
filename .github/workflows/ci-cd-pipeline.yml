@@ -53,7 +53,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.tag }} \
-          dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build
+          dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build --results-directory /test-results --logger trx
 
   lint:
     name: Lint and Code Quality Check
