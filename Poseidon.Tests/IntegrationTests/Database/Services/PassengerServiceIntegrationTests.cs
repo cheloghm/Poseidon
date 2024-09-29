@@ -6,6 +6,7 @@ using Poseidon.Services;
 using Poseidon.Models;
 using Poseidon.Interfaces.IRepositories;
 using Moq;
+using AutoMapper;
 
 namespace Poseidon.Tests.IntegrationTests.Services
 {
@@ -13,11 +14,13 @@ namespace Poseidon.Tests.IntegrationTests.Services
     {
         private readonly PassengerService _passengerService;
         private readonly Mock<IPassengerRepository> _mockPassengerRepository;
+        private readonly Mock<IMapper> _mockMapper;
 
         public PassengerServiceIntegrationTests()
         {
             _mockPassengerRepository = new Mock<IPassengerRepository>();
-            _passengerService = new PassengerService(_mockPassengerRepository.Object);
+            _mockMapper = new Mock<IMapper>();
+            _passengerService = new PassengerService(_mockPassengerRepository.Object, _mockMapper.Object);
         }
 
         [Fact]
@@ -25,10 +28,10 @@ namespace Poseidon.Tests.IntegrationTests.Services
         {
             // Arrange
             var passengers = new List<Passenger>
-    {
-        new Passenger { Id = ObjectId.GenerateNewId().ToString(), Pclass = 1, Name = "John Doe" },
-        new Passenger { Id = ObjectId.GenerateNewId().ToString(), Pclass = 1, Name = "Jane Doe" }
-    };
+            {
+                new Passenger { Id = ObjectId.GenerateNewId().ToString(), Pclass = 1, Name = "John Doe" },
+                new Passenger { Id = ObjectId.GenerateNewId().ToString(), Pclass = 1, Name = "Jane Doe" }
+            };
             _mockPassengerRepository.Setup(repo => repo.GetByClassAsync(1)).ReturnsAsync(passengers);
 
             // Act
