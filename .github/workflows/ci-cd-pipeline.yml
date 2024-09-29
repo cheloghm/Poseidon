@@ -1,7 +1,11 @@
-﻿---
+---
 name: "CI/CD Pipeline"
 
 on:
+  pull_request:
+    branches:
+      - "main"
+      - "dev"
   push:
     branches:
       - "main"
@@ -9,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build Docker Image
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -27,11 +31,15 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:dev .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:dev
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ github.sha }} .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ github.sha }}
+
+      - name: Save Docker Image Tag
+        id: docker_tag
+        run: echo "::set-output name=tag::${{ github.sha }}"
 
   test:
-    name: Run Tests
+    name: Run Unit Tests
     runs-on: ubuntu-latest
     needs: build
 
@@ -44,13 +52,30 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:dev \
+          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ steps.docker_tag.outputs.tag }} \
           dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build
+
+  lint:
+    name: Lint and Code Quality Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Linter
+        run: |
+          sudo apt-get install -y dotnet-format
+
+      - name: Run Lint Check
+        run: |
+          dotnet format --check
 
   security_scan:
     name: Run Security Scan
     runs-on: ubuntu-latest
-    needs: build
+    needs: test
     container:
       image: aquasec/trivy:latest
 
@@ -61,7 +86,7 @@ jobs:
       - name: Run vulnerability scan
         run: |
           trivy image --severity CRITICAL --exit-code 1 \
-          ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:dev
+          ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ steps.docker_tag.outputs.tag }}
 
   deploy_dev:
     name: Deploy to Dev Environment

@@ -34,5 +34,5 @@ spec:
                 configMapKeyRef:
                   name: poseidon-config
                   key: MONGO_DB_NAME
-            - name: ENVIRONMENT  # <-- Add this line
+            - name: ENVIRONMENT
               value: kubernetes
