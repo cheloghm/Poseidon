@@ -36,7 +36,7 @@ jobs:
 
       - name: Save Docker Image Tag
         id: docker_tag
-        run: echo "::set-output name=tag::${{ github.sha }}"
+        run: echo "tag=${{ github.sha }}" >> $GITHUB_ENV
 
   test:
     name: Run Unit Tests
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ steps.docker_tag.outputs.tag }} \
+          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.tag }} \
           dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build
 
   lint:
@@ -86,7 +86,7 @@ jobs:
       - name: Run vulnerability scan
         run: |
           trivy image --severity CRITICAL --exit-code 1 \
-          ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ steps.docker_tag.outputs.tag }}
+          ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.tag }}
 
   deploy_dev:
     name: Deploy to Dev Environment
