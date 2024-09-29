@@ -32,9 +32,6 @@ README.md
 # Ignore Mongo-seed directory
 Mongo-seed/
 
-# Ignore test project files
-Poseidon.Tests/
-
 # Ignore log files
 logs/
 

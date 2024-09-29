@@ -1,4 +1,3 @@
----
 name: "CI/CD Pipeline"
 
 on:
@@ -13,15 +12,36 @@ on:
 
 jobs:
   build:
-    name: Build and Push Docker Image
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub  # Log in to DockerHub to push the image
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Get Short SHA
+        id: vars
+        run: echo "GITHUB_SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Build and tag Docker image
+        run: |
+          docker build -t cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }} .
+          docker push cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
+
+      - name: Save Docker Image Tag
+        id: docker_tag
+        run: echo "DOCKER_IMAGE_TAG=cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }}" >> $GITHUB_ENV
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
@@ -29,48 +49,33 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Pull Docker image and run tests
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ github.sha }} .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ github.sha }}
-
-      - name: Save Docker Image Tag
-        id: docker_tag
-        run: echo "tag=${{ github.sha }}" >> $GITHUB_ENV
-
-  test:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v1
-
-      - name: Run Unit Tests
-        run: |
-          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.tag }} \
-          dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build --results-directory /test-results --logger trx
+          docker pull ${{ env.DOCKER_IMAGE_TAG }}
+          docker run --rm \
+            -v ${{ github.workspace }}/test-results:/test-results \
+            ${{ env.DOCKER_IMAGE_TAG }} \
+            dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build --results-directory /test-results --logger trx
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Results
+          path: test-results
 
   lint:
     name: Lint and Code Quality Check
     runs-on: ubuntu-latest
     needs: test
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install Linter
-        run: |
-          sudo apt-get install -y dotnet-format
+        run: sudo apt-get install -y dotnet-format
 
       - name: Run Lint Check
-        run: |
-          dotnet format --check
+        run: dotnet format --check
 
   security_scan:
     name: Run Security Scan
@@ -78,21 +83,17 @@ jobs:
     needs: test
     container:
       image: aquasec/trivy:latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Run vulnerability scan
-        run: |
-          trivy image --severity CRITICAL --exit-code 1 \
-          ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.tag }}
+        run: trivy image --severity CRITICAL --exit-code 1 ${{ env.DOCKER_IMAGE_TAG }}
 
   deploy_dev:
     name: Deploy to Dev Environment
     runs-on: ubuntu-latest
     needs: security_scan
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -110,18 +111,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy_dev
     if: github.ref == 'refs/heads/dev'
-
     steps:
       - name: Await Approval
-        run: |
-          echo "Approve this deployment to Prod?"
+        run: echo "Approve this deployment to Prod?"
 
   deploy_prod:
     name: Deploy to Production Environment
     runs-on: ubuntu-latest
     needs: manual_approval
     if: github.ref == 'refs/heads/main'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
