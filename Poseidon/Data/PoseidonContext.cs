@@ -19,9 +19,11 @@ namespace Poseidon.Data
         }
 
         public IMongoDatabase Database => _database;
-        public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
-        public IMongoCollection<Passenger> Passengers => _database.GetCollection<Passenger>("Passengers");
-        public IMongoCollection<Token> Tokens => _database.GetCollection<Token>("Tokens");
+
+        // Make the collections virtual to allow overriding in tests
+        public virtual IMongoCollection<User> Users => _database.GetCollection<User>("Users");
+        public virtual IMongoCollection<Passenger> Passengers => _database.GetCollection<Passenger>("Passengers");
+        public virtual IMongoCollection<Token> Tokens => _database.GetCollection<Token>("Tokens");
     }
 
 }
