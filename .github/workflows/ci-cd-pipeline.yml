@@ -37,8 +37,8 @@ jobs:
       - name: Save Docker Image Tag
         id: docker_tag
         run: echo "DOCKER_IMAGE_TAG=${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}" >> $GITHUB_ENV
-    outputs:
-      DOCKER_IMAGE_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
+        outputs:
+          DOCKER_IMAGE_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
 
   test:
     runs-on: ubuntu-latest
