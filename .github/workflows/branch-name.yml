@@ -16,8 +16,17 @@ jobs:
           # Use github.head_ref for pull requests, and github.ref for push events
           branchName=$(echo "${{ github.head_ref || github.ref }}" | sed 's/refs\/heads\///')
           echo "Branch name: $branchName"
-          
-          # Ensure branch name follows the convention
+
+          # List of branches to exclude from the naming convention check
+          excluded_branches_regex="^(main|develop|release|master)$"
+
+          # Check if the branch is excluded
+          if [[ $branchName =~ $excluded_branches_regex ]]; then
+            echo "Branch name '$branchName' is excluded from naming convention checks."
+            exit 0
+          fi
+
+          # Ensure branch name follows the convention for non-excluded branches
           if [[ ! $branchName =~ ^(feature|bugfix|hotfix)\/[a-z0-9._-]+$ ]]; then
             echo "::error::Branch name must start with 'feature/', 'bugfix/', or 'hotfix/' followed by a descriptive name in lowercase letters, numbers, dots, underscores, or dashes."
             exit 1
