@@ -1,0 +1,24 @@
+name: "Enforce Branch Naming Convention"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - "*"  # Ensure all branches are checked when pushed
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Branch Name
+        run: |
+          # Use github.head_ref for pull requests, and github.ref for push events
+          branchName=$(echo "${{ github.head_ref || github.ref }}" | sed 's/refs\/heads\///')
+          echo "Branch name: $branchName"
+          
+          # Ensure branch name follows the convention
+          if [[ ! $branchName =~ ^(feature|bugfix|hotfix)\/[a-z0-9._-]+$ ]]; then
+            echo "::error::Branch name must start with 'feature/', 'bugfix/', or 'hotfix/' followed by a descriptive name in lowercase letters, numbers, dots, underscores, or dashes."
+            exit 1
+          fi
