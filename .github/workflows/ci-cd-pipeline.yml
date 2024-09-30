@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Login to DockerHub  # Log in to DockerHub to push the image
+      - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -28,13 +28,17 @@ jobs:
         run: echo "GITHUB_SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
       - name: Build and tag Docker image
+        id: docker_build  # Add an ID to the step so it can be referenced
         run: |
-          docker build -t cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }} .
-          docker push cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }} -t ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:latest
 
       - name: Save Docker Image Tag
         id: docker_tag
-        run: echo "DOCKER_IMAGE_TAG=cheloghm/poseidon-api:${{ env.GITHUB_SHORT_SHA }}" >> $GITHUB_ENV
+        run: echo "DOCKER_IMAGE_TAG=${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}" >> $GITHUB_ENV
+        outputs:
+          DOCKER_IMAGE_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/poseidon-api:${{ env.GITHUB_SHORT_SHA }}
 
   test:
     runs-on: ubuntu-latest
@@ -49,14 +53,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Pull Docker image and run tests
+      - name: Pull latest Docker image and run tests
         run: |
-          docker pull ${{ env.DOCKER_IMAGE_TAG }}
+          docker pull cheloghm/poseidon-api:latest
           docker run --rm \
             -v ${{ github.workspace }}/test-results:/test-results \
-            ${{ env.DOCKER_IMAGE_TAG }} \
+            cheloghm/poseidon-api:latest \
             dotnet test /src/Poseidon.Tests/Poseidon.Tests.csproj --no-build --results-directory /test-results --logger trx
-      
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
