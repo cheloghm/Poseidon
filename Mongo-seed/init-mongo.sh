@@ -8,7 +8,7 @@ if [ "$ENVIRONMENT" == "docker-compose" ]; then
   MONGO_DB_NAME="${MONGO_DB_NAME}Docker"
   echo "Running in Docker Compose environment. Using database name: $MONGO_DB_NAME"
 elif [ "$ENVIRONMENT" == "kubernetes" ]; then
-  MONGO_HOST=localhost  # or use the appropriate service name in Kubernetes
+  MONGO_HOST=localhost  # Connect to MongoDB within the same pod
   MONGO_DB_NAME="${MONGO_DB_NAME}K8s"
   echo "Running in Kubernetes environment. Using database name: $MONGO_DB_NAME"
 else
@@ -16,13 +16,14 @@ else
   exit 1
 fi
 
-# Wait for MongoDB to be ready
-while ! mongosh --host $MONGO_HOST --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase "admin" --eval "print('Waiting for MongoDB to be ready...')" > /dev/null 2>&1; do
-  echo "MongoDB is not ready yet. Retrying in 5 seconds..."
-  sleep 5
+# Wait for MongoDB to be ready with detailed logging
+echo "Checking MongoDB readiness on host $MONGO_HOST..."
+while ! mongosh --host $MONGO_HOST --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase "admin" --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; do
+  echo "MongoDB is not ready yet. Retrying in 10 seconds..."
+  sleep 10
 done
 
-echo "Connected to MongoDB, proceeding with seeding..."
+echo "MongoDB is ready!"
 
 # Create the root user in the 'admin' database
 mongosh --host $MONGO_HOST <<EOF
