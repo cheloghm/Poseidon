@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: cheloghm/poseidon-mongodb-seed:2.1
+          image: cheloghm/poseidon-mongodb-seed:2.4  # Pre-seeded image
           ports:
             - containerPort: 27017
           env:
@@ -36,3 +36,10 @@ spec:
                   key: MONGO_DB_NAME
             - name: ENVIRONMENT
               value: kubernetes
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db  # This is where MongoDB stores its data
+      volumes:
+        - name: mongo-persistent-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc  # Refer to the PVC created above
