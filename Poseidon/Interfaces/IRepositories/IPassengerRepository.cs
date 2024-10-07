@@ -11,5 +11,14 @@ namespace Poseidon.Interfaces.IRepositories
         Task<IEnumerable<Passenger>> GetByFareRangeAsync(double minFare, double maxFare);
         Task<IEnumerable<Passenger>> GetSurvivorsAsync();
         Task<double> GetSurvivalRateAsync();
+        Task<IEnumerable<Passenger>> SearchPassengersAsync(
+            string name = null,
+            int? pclass = null,
+            string sex = null,
+            double? minAge = null,
+            double? maxAge = null,
+            double? minFare = null,
+            double? maxFare = null);
     }
+
 }

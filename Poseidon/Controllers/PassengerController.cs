@@ -124,5 +124,26 @@ namespace Poseidon.Controllers
             await _passengerService.DeleteAsync(id);
             return NoContent();
         }
+
+        [HttpGet("search")]
+        [Authorize(Roles = "User, Admin")]
+        [SwaggerOperation(Summary = "Search for passengers based on criteria", Description = "Allows searching passengers by name, class, sex, age range, and fare range.")]
+        public async Task<IActionResult> SearchPassengers(
+            [FromQuery] string name = null,
+            [FromQuery] int? pclass = null,
+            [FromQuery] string sex = null,
+            [FromQuery] double? minAge = null,
+            [FromQuery] double? maxAge = null,
+            [FromQuery] double? minFare = null,
+            [FromQuery] double? maxFare = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var passengers = await _passengerService.SearchPassengersAsync(
+                name, pclass, sex, minAge, maxAge, minFare, maxFare);
+
+            var paginatedPassengers = PaginationHelper.Paginate(passengers.AsQueryable(), page, pageSize);
+            return Ok(paginatedPassengers);
+        }
     }
 }

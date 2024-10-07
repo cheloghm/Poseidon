@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using Poseidon.Data;
+using Poseidon.Interfaces;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Models;
 using Poseidon.Utilities;
@@ -9,7 +10,7 @@ namespace Poseidon.Repositories
 {
     public class UserRepository : Repository<User>, IUserRepository
     {
-        public UserRepository(PoseidonContext context) : base(context.Users)
+        public UserRepository(IPoseidonContext context) : base(context.Users)
         {
         }
 

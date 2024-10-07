@@ -29,8 +29,11 @@ README.md
 !.git/packed-refs
 !.git/refs/heads/**
 
-# Ignore Mongo-seed directory
+# Ignore directories
 Mongo-seed/
+K8s/
+Docs/
+data/
 
 # Ignore log files
 logs/

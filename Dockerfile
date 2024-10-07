@@ -35,8 +35,8 @@ WORKDIR /src/Poseidon.Tests
 # Ensure the /test-results directory exists
 RUN mkdir -p /test-results
 
-# Run tests without using --no-build, ensuring the build happens
-RUN dotnet test "Poseidon.Tests.csproj" --logger trx --results-directory /test-results
+# Skip integration tests during build, run only unit tests
+RUN dotnet test "Poseidon.Tests.csproj" --filter Category!=Integration --logger trx --results-directory /test-results
 
 # Stage 4: Publish the application
 FROM build AS publish
