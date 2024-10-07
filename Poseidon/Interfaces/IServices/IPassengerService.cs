@@ -12,5 +12,14 @@ namespace Poseidon.Interfaces.IServices
         Task<IEnumerable<Passenger>> GetSurvivorsAsync();
         Task<Passenger> CreatePassengerAsync(PassengerDTO passengerDTO);
         Task<double> GetSurvivalRateAsync();
+        Task<IEnumerable<Passenger>> SearchPassengersAsync(
+            string name = null,
+            int? pclass = null,
+            string sex = null,
+            double? minAge = null,
+            double? maxAge = null,
+            double? minFare = null,
+            double? maxFare = null);
     }
+
 }

@@ -1,4 +1,4 @@
-using DotNetEnv; // Import DotNetEnv
+using DotNetEnv;
 using Poseidon.Extensions;
 using Poseidon.Middlewares;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -10,37 +10,38 @@ using Poseidon.Config;
 var builder = WebApplication.CreateBuilder(args);
 
 // Load the .env file for local development
-Env.Load();
+if (builder.Environment.IsDevelopment())
+{
+    Env.Load();
+}
+
+// Add configuration providers
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+// Bind DatabaseConfig from the "DatabaseConfig" section
+builder.Services.Configure<DatabaseConfig>(builder.Configuration.GetSection("DatabaseConfig"));
 
 // Configure Serilog via extension method
 builder.Host.ConfigureSerilog();
 
-// Get sensitive values from environment variables
-string mongoConnectionString = builder.Environment.IsDevelopment()
-    ? Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING_LOCAL")
-    : Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING_K8S");
-
-string mongoDbName = Environment.GetEnvironmentVariable("MONGO_DB_NAME");
-string jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
-string jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
-string jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
-
-// Set MongoDB config in-memory (override appsettings.json)
-builder.Services.Configure<DatabaseConfig>(options =>
+// Set up JWT Authentication
+builder.Services.AddSingleton<IJwtUtility>(sp =>
 {
-    options.ConnectionString = mongoConnectionString;
-    options.DatabaseName = mongoDbName;
+    var jwtConfig = builder.Configuration.GetSection("Jwt");
+    var key = jwtConfig["Key"];
+    var issuer = jwtConfig["Issuer"];
+    var audience = jwtConfig["Audience"];
+    return new JwtUtility(Encoding.UTF8.GetBytes(key), issuer, audience);
 });
 
-// Set up JWT Authentication with environment variables
-builder.Services.AddSingleton<IJwtUtility>(sp => new JwtUtility(Encoding.UTF8.GetBytes(jwtKey), jwtIssuer, jwtAudience));
-
-// Add services to the container.
-builder.Services.AddMongoDb(builder.Configuration);  // MongoDB setup remains as-is, but using env variables
+// Add services to the container
+builder.Services.AddMongoDb(builder.Configuration);
 builder.Services.AddServices();
 builder.Services.PasswordHash();
 builder.Services.AddRepositories();
-builder.Services.AddJwtAuthentication(builder.Configuration); // This will still use the Configuration object
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddSwaggerWithJwtAuth();
 builder.Services.AddAutoMapperProfiles();
 builder.Services.AddBackgroundTasks();
@@ -55,13 +56,12 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 
-// Use Swagger middleware
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

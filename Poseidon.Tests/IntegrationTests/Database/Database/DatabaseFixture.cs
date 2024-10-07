@@ -4,6 +4,7 @@ using Poseidon.Config;
 using Poseidon.Data;
 using System;
 using Xunit;
+using Microsoft.Extensions.Logging;
 using DotNetEnv;
 
 public class DatabaseFixture : IDisposable
@@ -13,7 +14,7 @@ public class DatabaseFixture : IDisposable
     public DatabaseFixture()
     {
         // Load environment variables from the .env file
-        DotNetEnv.Env.Load();
+        Env.Load();
 
         // Set up the database configuration
         var config = new DatabaseConfig
@@ -25,7 +26,15 @@ public class DatabaseFixture : IDisposable
 
         // Use the config to initialize the PoseidonContext
         var options = Options.Create(config);
-        Context = new PoseidonContext(options);
+
+        // Create a logger instance
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole(); // You can configure logging providers as needed
+        });
+        ILogger<PoseidonContext> logger = loggerFactory.CreateLogger<PoseidonContext>();
+
+        Context = new PoseidonContext(options, logger);
 
         // Initialize the database with test data if needed
     }

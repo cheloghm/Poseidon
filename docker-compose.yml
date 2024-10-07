@@ -25,15 +25,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: poseidon_api
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "9090:8080"
     environment:
-      MONGO_CONNECTION_STRING: >
-        mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
-      JWT_KEY: ${JWT_KEY}
-      JWT_ISSUER: ${JWT_ISSUER}
-      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+      DatabaseConfig__ConnectionStringDocker: ${DatabaseConfig__ConnectionStringDocker}
+      DatabaseConfig__DatabaseName: ${DatabaseConfig__DatabaseName}
+      # JWT configuration using the same variable names as in .env
+      Jwt__Key: ${Jwt__Key}
+      Jwt__Issuer: ${Jwt__Issuer}
+      Jwt__Audience: ${Jwt__Audience}
     depends_on:
       - mongodb
     networks:
@@ -51,7 +55,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
-      ENVIRONMENT: docker-compose  # <-- Add this line
+      ENVIRONMENT: docker-compose
     networks:
       - poseidon-net
     restart: "no"

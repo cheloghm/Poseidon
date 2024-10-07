@@ -1,5 +1,4 @@
-﻿---
-apiVersion: apps/v1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: poseidon-api
@@ -15,23 +14,15 @@ spec:
     spec:
       containers:
         - name: poseidon-api
-          image: cheloghm/poseidon-api:2.2
+          image: cheloghm/poseidon-api:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
-
           env:
-            # MongoDB connection string for Kubernetes
-            - name: MONGO_CONNECTION_STRING
-              value: "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@poseidon-mongodb.default.svc.cluster.local:27017/${MONGO_DB_NAME}?authSource=admin"
+            - name: IS_K8S
+              value: "true"
 
-            # Use values from ConfigMap
-            - name: MONGO_DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: poseidon-config
-                  key: MONGO_DB_NAME
-
-            # Use values from Secret (already base64 encoded)
+            # Use Kubernetes secrets for sensitive data
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -44,24 +35,43 @@ spec:
                   name: poseidon-secrets
                   key: MONGO_INITDB_ROOT_PASSWORD
 
-            # JWT values from Secrets
-            - name: JWT_KEY
+            - name: Jwt__Key
               valueFrom:
                 secretKeyRef:
                   name: poseidon-secrets
                   key: JWT_KEY
 
-            - name: JWT_ISSUER
+            - name: Jwt__Issuer
               valueFrom:
                 secretKeyRef:
                   name: poseidon-secrets
                   key: JWT_ISSUER
 
-            - name: JWT_AUDIENCE
+            - name: Jwt__Audience
               valueFrom:
                 secretKeyRef:
                   name: poseidon-secrets
                   key: JWT_AUDIENCE
+
+            # Use ConfigMap for non-sensitive data
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: poseidon-config
+                  key: MONGO_DB_NAME
+
+            # Set the connection string directly from the secret
+            - name: DatabaseConfig__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: DATABASE_CONFIG_CONNECTIONSTRING
+
+            - name: DatabaseConfig__DatabaseName
+              valueFrom:
+                configMapKeyRef:
+                  name: poseidon-config
+                  key: DatabaseConfig__DatabaseName
 
           readinessProbe:
             httpGet:

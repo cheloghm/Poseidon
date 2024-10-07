@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: cheloghm/poseidon-mongodb-seed:2.4  # Pre-seeded image
+          image: cheloghm/poseidon-mongodb-seed:2.7  # Pre-seeded image
           ports:
             - containerPort: 27017
           env:

@@ -45,6 +45,18 @@ namespace Poseidon.Extensions
 
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
+            var jwtConfig = configuration.GetSection("Jwt");
+            var keyString = jwtConfig["Key"];
+            var issuer = jwtConfig["Issuer"];
+            var audience = jwtConfig["Audience"];
+
+            if (string.IsNullOrEmpty(keyString))
+            {
+                throw new ArgumentNullException("Jwt:Key", "JWT Key cannot be null");
+            }
+
+            var key = Encoding.UTF8.GetBytes(keyString);
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -52,10 +64,6 @@ namespace Poseidon.Extensions
             })
             .AddJwtBearer(options =>
             {
-                var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY"));
-                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
-                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
-
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -141,6 +149,7 @@ namespace Poseidon.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPassengerService, PassengerService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddSingleton<IPoseidonContext, PoseidonContext>();
 
             return services;
         }

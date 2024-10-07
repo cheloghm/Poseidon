@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Poseidon.Data;
+using Poseidon.Interfaces;
 using Poseidon.Interfaces.IRepositories;
 using Poseidon.Models;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Poseidon.Repositories
 {
     public class PassengerRepository : Repository<Passenger>, IPassengerRepository
     {
-        public PassengerRepository(PoseidonContext context) : base(context.Passengers) { }
+        public PassengerRepository(IPoseidonContext context) : base(context.Passengers) { }
 
         public async Task<IEnumerable<Passenger>> GetByClassAsync(int classNumber)
         {
@@ -61,5 +62,56 @@ namespace Poseidon.Repositories
             }
         }
 
+        public async Task<IEnumerable<Passenger>> SearchPassengersAsync(
+            string name = null,
+            int? pclass = null,
+            string sex = null,
+            double? minAge = null,
+            double? maxAge = null,
+            double? minFare = null,
+            double? maxFare = null)
+        {
+            var filterBuilder = Builders<Passenger>.Filter;
+            var filters = new List<FilterDefinition<Passenger>>();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                filters.Add(filterBuilder.Regex(p => p.Name, new BsonRegularExpression(name, "i")));
+            }
+
+            if (pclass.HasValue)
+            {
+                filters.Add(filterBuilder.Eq(p => p.Pclass, pclass.Value));
+            }
+
+            if (!string.IsNullOrEmpty(sex))
+            {
+                filters.Add(filterBuilder.Eq(p => p.Sex.ToLower(), sex.ToLower()));
+            }
+
+            if (minAge.HasValue)
+            {
+                filters.Add(filterBuilder.Gte(p => p.Age, minAge.Value));
+            }
+
+            if (maxAge.HasValue)
+            {
+                filters.Add(filterBuilder.Lte(p => p.Age, maxAge.Value));
+            }
+
+            if (minFare.HasValue)
+            {
+                filters.Add(filterBuilder.Gte(p => p.Fare, minFare.Value));
+            }
+
+            if (maxFare.HasValue)
+            {
+                filters.Add(filterBuilder.Lte(p => p.Fare, maxFare.Value));
+            }
+
+            var filter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
+
+            return await _collection.Find(filter).ToListAsync();
+        }
     }
 }
