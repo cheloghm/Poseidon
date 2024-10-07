@@ -1,6 +1,6 @@
-# Poseidon API - Code Style Guide
+# Poseidon API Orchestrator - Code Style Guide
 
-This document outlines the coding conventions, best practices, and patterns to be followed when contributing to the Poseidon project. By adhering to these standards, we ensure that the codebase remains clean, maintainable, and easy to understand for all contributors.
+This document outlines the coding conventions, best practices, and patterns to be followed when contributing to the Poseidon project. Adhering to these standards ensures that the codebase remains consistent, clean, and easy to maintain.
 
 ## Table of Contents
 
@@ -17,57 +17,53 @@ This document outlines the coding conventions, best practices, and patterns to b
 
 ## General Guidelines
 
-1. **Consistency**: Follow existing patterns in the codebase. If you encounter legacy code that doesn’t follow these guidelines, consider refactoring it.
-2. **Readability**: Code should be easy to read and understand. Prioritize clarity over brevity when writing code.
-3. **DRY Principle (Don’t Repeat Yourself)**: Avoid duplicating code. Refactor shared logic into functions or reusable components.
-4. **Single Responsibility Principle**: Each class or function should have one responsibility. Avoid adding multiple responsibilities in one place.
-5. **Minimize Dependencies**: Use dependency injection where possible to minimize tight coupling between components.
+1. **Consistency**: Follow existing patterns in the codebase. Refactor legacy code to align with these guidelines when necessary.
+2. **Readability**: Write clear and understandable code. Prioritize clarity over brevity.
+3. **DRY Principle (Don’t Repeat Yourself)**: Avoid code duplication by abstracting shared logic into reusable functions or components.
+4. **Single Responsibility Principle**: Each class or function should handle one specific task or responsibility.
+5. **Minimize Dependencies**: Utilize dependency injection to reduce tight coupling between components.
 
 ---
 
 ## Naming Conventions
 
-Adopting consistent naming conventions helps ensure that the code is intuitive to read and understand. The following are the preferred conventions:
-
 ### Classes & Interfaces
 
 - **Classes**: Use PascalCase.
-  - Example: `PassengerService`, `JwtUtility`
-- **Interfaces**: Prefix with `I`, followed by PascalCase.
-  - Example: `IPassengerService`, `IRepository`
+  - *Example*: `PassengerService`, `JwtUtility`
+- **Interfaces**: Prefix with `I` and use PascalCase.
+  - *Example*: `IPassengerService`, `IRepository`
 
 ### Variables & Parameters
 
 - **Local Variables**: Use camelCase.
-  - Example: `var passengerService = new PassengerService();`
+  - *Example*: `var passengerService = new PassengerService();`
 - **Class Properties**: Use PascalCase.
-  - Example: `public string Name { get; set; }`
-- **Private Fields**: Use camelCase prefixed with an underscore (`_`).
-  - Example: `_passengerRepository`, `_mapper`
-- **Constants**: Use PascalCase, and prefix with `const`.
-  - Example: `const int MaxRetryAttempts = 3;`
+  - *Example*: `public string Name { get; set; }`
+- **Private Fields**: Use camelCase with an underscore prefix.
+  - *Example*: `_passengerRepository`, `_mapper`
+- **Constants**: Use PascalCase and prefix with `const`.
+  - *Example*: `const int MaxRetryAttempts = 3;`
 
 ### Methods
 
-- **Method Names**: Use PascalCase, and methods should clearly describe what they do.
-  - Example: `CreatePassenger()`, `ValidateToken()`
+- **Method Names**: Use PascalCase and clearly describe their functionality.
+  - *Example*: `CreatePassenger()`, `ValidateToken()`
 
 ---
 
 ## Formatting
 
-Consistent formatting makes code easier to scan and debug. The following formatting guidelines are mandatory:
-
 ### Indentation
 
-- Use **4 spaces** for indentation.
-- Do not use tabs. Configure your editor to insert spaces when the tab key is pressed.
+- Use **4 spaces** per indentation level.
+- Avoid using tabs. Configure your editor to insert spaces when the tab key is pressed.
 
 ### Braces
 
-- Always use braces (`{}`) for `if`, `for`, `while`, and other block statements, even for single-line statements.
-  
-  **Correct**:
+- Always use braces `{}` for control structures (`if`, `for`, `while`, etc.), even for single-line statements.
+
+  **Correct:**
   ```csharp
   if (condition)
   {
@@ -75,7 +71,7 @@ Consistent formatting makes code easier to scan and debug. The following formatt
   }
   ```
 
-  **Incorrect**:
+  **Incorrect:**
   ```csharp
   if (condition)
       DoSomething();
@@ -83,33 +79,31 @@ Consistent formatting makes code easier to scan and debug. The following formatt
 
 ### Line Length
 
-- Limit lines to **100 characters**. If a line exceeds this limit, consider breaking it into multiple lines.
+- Limit lines to **100 characters**. Break longer lines into multiple lines for better readability.
 
 ### Whitespace
 
 - Leave **one blank line** between class members (methods, properties, etc.).
-- Leave **no trailing whitespaces** at the end of lines.
-- Separate logical blocks of code within methods by a **single blank line** to improve readability.
+- Do not include trailing whitespaces at the end of lines.
+- Separate logical blocks within methods with a **single blank line** to enhance readability.
 
 ### File Structure
 
-- Class files should contain **one class or interface per file**.
-- Use a standard file structure:
-  - Namespace imports (with `System` namespaces listed first).
-  - Class definition.
-  - Fields, properties, constructor, methods (in that order).
+- Each file should contain **one class or interface**.
+- Follow a standard file structure:
+  1. Namespace imports (with `System` namespaces first).
+  2. Class or interface definition.
+  3. Fields, properties, constructor, methods (in that order).
 
 ---
 
 ## Commenting
 
-Comments are essential for providing context or explaining complex logic. However, avoid obvious or redundant comments. Let the code speak for itself.
-
 ### XML Documentation
 
-- Use XML documentation for **public methods and properties**. This ensures that documentation tools can automatically generate useful API documentation.
+- Use XML comments for **public methods and properties** to generate comprehensive API documentation.
 
-  **Example**:
+  **Example:**
   ```csharp
   /// <summary>
   /// Creates a new passenger and saves it to the database.
@@ -118,41 +112,39 @@ Comments are essential for providing context or explaining complex logic. Howeve
   /// <returns>The newly created passenger.</returns>
   public async Task<Passenger> CreatePassengerAsync(PassengerDTO passengerDTO)
   {
-      // Method implementation...
+      // Implementation...
   }
   ```
 
 ### Inline Comments
 
-- Use inline comments sparingly to explain **why** something is done in a specific way, rather than what is being done.
-  
-  **Example**:
+- Use inline comments sparingly to explain **why** certain decisions are made, not **what** the code does.
+
+  **Example:**
   ```csharp
-  // Use UTC to avoid timezone issues
+  // Use UTC to avoid timezone discrepancies
   var currentTime = DateTime.UtcNow;
   ```
 
 ### TODO Comments
 
-- If there’s a part of the code that requires future changes or refactoring, use `TODO:` comments.
-  
-  **Example**:
+- Use `TODO:` comments to indicate areas that require future improvements or refactoring.
+
+  **Example:**
   ```csharp
-  // TODO: Improve performance by caching this result
+  // TODO: Optimize this query for better performance
   ```
 
 ---
 
 ## Error Handling
 
-Error handling is a critical aspect of the Poseidon API to ensure reliability and user-friendliness.
+1. **Use Exceptions for Exceptional Situations**: Only use exceptions for unexpected or rare conditions, not for regular control flow.
+2. **Graceful Degradation**: Handle errors in a way that minimizes disruption to the user experience.
+3. **Catch Specific Exceptions**: Avoid catching generic `Exception`. Instead, catch specific exceptions to handle known error conditions appropriately.
+4. **Logging**: Log all exceptions with sufficient detail for troubleshooting, avoiding the inclusion of sensitive information.
 
-1. **Use Exceptions for Exceptional Situations**: Exceptions should only be used for unexpected or exceptional circumstances. Avoid using them for normal control flow.
-2. **Graceful Degradation**: When possible, handle errors in a way that doesn’t interrupt the user experience.
-3. **Catch Specific Exceptions**: Avoid catching generic `Exception`. Always catch specific exceptions to ensure you handle only what you expect.
-4. **Logging**: Log all exceptions with enough detail to diagnose issues, but avoid logging sensitive information (e.g., passwords).
-
-  **Example**:
+  **Example:**
   ```csharp
   try
   {
@@ -169,62 +161,69 @@ Error handling is a critical aspect of the Poseidon API to ensure reliability an
 
 ## Architecture & Structure
 
-The Poseidon project follows a layered architecture with separation of concerns between different layers:
+The Poseidon project follows a **layered architecture** to ensure separation of concerns:
 
-- **Controllers**: Handle HTTP requests and return responses.
-- **Services**: Contain business logic. Controllers delegate work to services.
-- **Repositories**: Handle data access and interaction with MongoDB.
-- **DTOs**: Used to transfer data between layers (e.g., between controllers and services).
-- **Models**: Represent the data stored in MongoDB.
-- **Utilities**: Provide helper functions and utilities such as JWT handling and password hashing.
+- **Controllers**: Handle HTTP requests and delegate processing to services.
+- **Services**: Contain business logic and interact with repositories.
+- **Repositories**: Manage data access and communication with MongoDB.
+- **DTOs (Data Transfer Objects)**: Facilitate data transfer between layers.
+- **Models**: Represent data entities stored in MongoDB.
+- **Utilities**: Provide helper functions like JWT handling and password hashing.
+- **Event Handlers**: Manage events triggered by specific actions.
+- **Middlewares**: Implement cross-cutting concerns like error handling and rate limiting.
 
 ### Dependency Injection
 
-All services, repositories, and utilities must be registered in `Program.cs` via dependency injection (DI). Always prefer **constructor injection** over service location.
+- Register all services, repositories, and utilities in `Program.cs` using dependency injection.
+- Prefer **constructor injection** to promote loose coupling and easier testing.
 
 ---
 
 ## Unit Testing
 
-Unit tests ensure that each individual component works as expected. Follow these guidelines for writing unit tests:
+Unit tests verify the functionality of individual components in isolation. Follow these guidelines when writing unit tests:
 
-1. **Test Method Names**: Use a descriptive naming pattern for test methods:
-   - `MethodName_StateUnderTest_ExpectedBehavior`
-   
+1. **Descriptive Test Method Names**: Clearly indicate the purpose and expected outcome.
+
    **Example**: `CreatePassenger_ValidData_ReturnsCreatedPassenger()`
-   
-2. **Test Structure**: Use the **Arrange-Act-Assert** pattern in tests:
-   - **Arrange**: Set up the objects and prepare the necessary data.
-   - **Act**: Perform the action you want to test.
-   - **Assert**: Verify that the action produces the expected result.
-   
-3. **Mocking Dependencies**: Use mocking libraries (e.g., Moq) to mock dependencies such as services and repositories.
 
-4. **Edge Cases**: Always test edge cases, including invalid inputs and error scenarios.
+2. **Test Structure**: Use the **Arrange-Act-Assert** pattern.
+   - **Arrange**: Set up the necessary objects and state.
+   - **Act**: Execute the method being tested.
+   - **Assert**: Verify the outcome.
+
+3. **Mock Dependencies**: Utilize mocking frameworks like **Moq** to simulate dependencies, ensuring tests remain isolated.
+
+4. **Cover Edge Cases**: Test scenarios with invalid inputs or unexpected conditions to ensure robustness.
 
 ---
 
 ## Version Control
 
-Follow these version control guidelines to maintain a clean and organized Git repository:
+Maintain a clean and organized Git repository by following these version control practices:
 
-1. **Commit Messages**: Use clear and concise commit messages. Use the following structure:
-   - `Feature/bugfix: What was done`
-   
+1. **Commit Messages**: Write clear and concise commit messages using the following structure:
+   - `Feature/bugfix: Brief description of the change`
+
    **Example**: `Feature: Implement user registration and login functionality`
-   
+
 2. **Branching Strategy**:
    - `main`: Production-ready code.
-   - `dev`: In-progress development. All features and bug fixes should branch from here.
-   - Feature branches: Each new feature or bugfix should be developed in its own branch.
+   - `dev`: Ongoing development and integration.
+   - **Feature Branches**: Create separate branches for each new feature or bug fix.
 
-3. **Pull Requests**: All code should be reviewed via pull requests before merging into the `main` branch. Ensure that your pull request includes:
-   - A description of what the code does.
-   - A link to any relevant issue or feature request.
-   - Any screenshots or test results, if applicable.
+3. **Pull Requests**:
+   - All code changes must be reviewed through pull requests before merging.
+   - Include a descriptive title and detailed description of the changes.
+   - Reference related issues or feature requests.
+   - Ensure all tests pass before merging.
 
 ---
 
 ## Conclusion
 
-By following this Code Style Guide, we ensure that the Poseidon project remains clean, scalable, and maintainable. Developers should always prioritize code readability, simplicity, and consistency. If you’re ever unsure of a decision, refer back to this guide or consult with the team.
+Adhering to this **Code Style Guide** ensures that the Poseidon API Orchestrator remains clean, consistent, and maintainable. By following these conventions and best practices, contributors can enhance the codebase's readability and reliability, fostering a collaborative and efficient development environment.
+
+---
+
+Feel free to reach out to the project maintainers if you have any questions or need further clarification on any of these guidelines.

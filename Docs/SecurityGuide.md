@@ -1,29 +1,25 @@
-### Security Guide for Poseidon API
-
----
+# Poseidon API Orchestrator - Security Guide
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [Authentication and Authorization](#authentication-and-authorization)
+1. [Introduction](#1-introduction)
+2. [Authentication and Authorization](#2-authentication-and-authorization)
    - [JWT-based Authentication](#jwt-based-authentication)
    - [Role-based Authorization](#role-based-authorization)
-3. [Rate Limiting to Prevent DDoS Attacks](#rate-limiting-to-prevent-ddos-attacks)
-4. [Sensitive Data Handling](#sensitive-data-handling)
-5. [Password Security](#password-security)
-6. [HTTPS Configuration](#https-configuration)
-7. [Security Headers](#security-headers)
-8. [Logging and Monitoring](#logging-and-monitoring)
-9. [Vulnerability Scanning](#vulnerability-scanning)
-10. [Best Practices and Recommendations](#best-practices-and-recommendations)
+3. [Rate Limiting to Prevent DDoS Attacks](#3-rate-limiting-to-prevent-ddos-attacks)
+4. [Sensitive Data Handling](#4-sensitive-data-handling)
+5. [Password Security](#5-password-security)
+6. [HTTPS Configuration](#6-https-configuration)
+7. [Security Headers](#7-security-headers)
+8. [Logging and Monitoring](#8-logging-and-monitoring)
+9. [Vulnerability Scanning](#9-vulnerability-scanning)
+10. [Best Practices and Recommendations](#10-best-practices-and-recommendations)
 
 ---
 
 ## 1. Introduction
 
-Security is a key focus in the Poseidon API project. This guide outlines the measures implemented to protect the API from potential threats such as unauthorized access, DDoS attacks, and data leaks. 
-
-The Poseidon API uses several security practices, such as JWT-based authentication, rate limiting, sensitive data handling, password hashing, and logging to ensure a secure application.
+Security is a paramount concern for the **Poseidon API Orchestrator**. This guide outlines the strategies and practices implemented to safeguard the API against unauthorized access, DDoS attacks, data breaches, and other potential threats. By adhering to these measures, we ensure the API remains secure, reliable, and trustworthy.
 
 ---
 
@@ -31,137 +27,132 @@ The Poseidon API uses several security practices, such as JWT-based authenticati
 
 ### JWT-based Authentication
 
-The Poseidon API uses JSON Web Tokens (JWT) for user authentication. JWTs are issued upon successful login and must be included in the `Authorization` header for all subsequent requests.
+The Poseidon API employs **JSON Web Tokens (JWT)** for authenticating users. Upon successful login, users receive a JWT, which must be included in the `Authorization` header of subsequent requests. This token verifies the user's identity and grants access to protected resources.
 
-#### Steps for JWT Authentication:
+**Workflow:**
+1. **Login**: User submits credentials to `/api/User/login`.
+2. **Token Issuance**: On successful authentication, a JWT is issued containing user information and role.
+3. **Token Usage**: The JWT is sent in the `Authorization` header for accessing protected endpoints.
 
-1. **User Login**: A user provides their email and password in a POST request to the `/api/User/login` endpoint.
-2. **JWT Token Issuance**: If the login is successful, a JWT token is issued. This token includes the user’s ID and role (`Admin` or `User`) and is signed using a secret key stored securely.
-3. **Token Validation**: For every request, the JWT token must be included in the `Authorization` header as a Bearer token. The token is validated on every request to ensure the user is authenticated.
-   
-   Example header:
-   ```
-   Authorization: Bearer <JWT_TOKEN>
-   ```
+**Example Header:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Role-based Authorization
 
-The API implements role-based authorization to restrict access to certain endpoints. Users can be assigned one of two roles:
+Access to API endpoints is controlled based on user roles:
+- **Admin**: Full access, including managing users and passengers.
+- **User**: Limited access, primarily for viewing passenger data.
 
-- **Admin**: Can access administrative endpoints like managing users, passengers, and other sensitive data.
-- **User**: Has access to user-level endpoints such as viewing passengers or their data.
-
-Role-based authorization is enforced using attributes like `[Authorize(Roles = "Admin")]` and `[Authorize(Roles = "User, Admin")]` to protect specific API actions.
+Role-based access is enforced using authorization attributes in the code, ensuring users can only perform actions permitted by their roles.
 
 ---
 
 ## 3. Rate Limiting to Prevent DDoS Attacks
 
-To protect against Distributed Denial of Service (DDoS) attacks, Poseidon implements a custom **RateLimitingMiddleware**. This middleware limits the number of API requests a user can make within a defined time window. If the limit is exceeded, the API returns a `429 Too Many Requests` response.
+To mitigate the risk of **Distributed Denial of Service (DDoS)** attacks, the Poseidon API implements **rate limiting**. This restricts the number of requests a user can make within a specified time frame.
 
-### Configuration
+**Implementation:**
+- A custom `RateLimitingMiddleware` monitors incoming requests.
+- Defines a maximum number of requests per IP address within a set duration.
+- Exceeding the limit results in a `429 Too Many Requests` response.
 
-In `RateLimitingMiddleware.cs`, you can configure:
-
-- **Max Requests**: The maximum number of requests allowed per user within a specific time frame.
-- **Time Window**: The time period (in seconds or minutes) during which the request count is calculated.
-
-This helps mitigate DDoS attacks by preventing excessive API usage.
+This approach helps maintain API availability and performance under high traffic conditions.
 
 ---
 
 ## 4. Sensitive Data Handling
 
-Sensitive data, such as database credentials, JWT secrets, and other confidential information, is stored in environment variables and managed via `.env` files.
+All sensitive information, such as database credentials and JWT secrets, is managed securely through environment variables stored in `.env` files. These files are excluded from version control to prevent accidental exposure.
 
-### Environment Files:
-
-1. **Root-level `.env` file**: Contains MongoDB credentials, JWT secrets, and other sensitive configuration data for Docker and Kubernetes deployments.
-2. **API-level `.env` file**: Contains sensitive information for local development.
-
-Sensitive environment variables include:
-
-- `MONGO_INITDB_ROOT_USERNAME`
-- `MONGO_INITDB_ROOT_PASSWORD`
-- `JWT_KEY`
-- `JWT_ISSUER`
-- `JWT_AUDIENCE`
-
-This ensures that sensitive data is not hardcoded in the source code, reducing the risk of accidental exposure.
+**Key Practices:**
+- **Environment Variables**: Store sensitive data outside the codebase.
+- **Secure Storage**: Use tools like Kubernetes Secrets or Docker Secrets for managing sensitive configurations in deployment environments.
+- **Access Control**: Restrict access to environment files to authorized personnel only.
 
 ---
 
 ## 5. Password Security
 
-User passwords are stored securely in the database by applying a cryptographic hash function. We use `PasswordHasher` with a strong algorithm like **PBKDF2** to hash and verify passwords.
+User passwords are never stored in plain text. Instead, they are securely hashed using strong cryptographic algorithms before being stored in the database.
 
-### Password Security Workflow:
+**Process:**
+1. **Hashing**: Passwords are hashed using algorithms like **bcrypt** during registration.
+2. **Verification**: During login, the hashed password is compared with the stored hash to authenticate the user.
 
-1. **Password Hashing**: Upon user registration, the password is hashed using a secure algorithm before being stored in the database.
-2. **Password Verification**: During login, the provided password is hashed and compared with the stored hash to verify the user’s identity.
-
-This ensures that passwords are never stored in plain text and are secure even if the database is compromised.
+This ensures that even if the database is compromised, actual passwords remain protected.
 
 ---
 
 ## 6. HTTPS Configuration
 
-To secure communications between the client and server, the Poseidon API should be served over **HTTPS**. HTTPS ensures that all traffic is encrypted, preventing man-in-the-middle (MITM) attacks.
+All communications between clients and the Poseidon API are secured using **HTTPS**. HTTPS encrypts data in transit, preventing eavesdropping and tampering.
 
-- When deploying Poseidon to production, ensure an SSL certificate is configured and enabled.
-- All HTTP traffic should be redirected to HTTPS to enforce encryption.
-
-For local development, SSL can be configured via your IDE or Docker.
+**Implementation:**
+- **SSL Certificates**: Obtain and configure SSL certificates for the server.
+- **Redirect HTTP to HTTPS**: Enforce HTTPS by redirecting all HTTP traffic to HTTPS.
+- **Configuration**: Ensure that the server is configured to use HTTPS in both development and production environments.
 
 ---
 
 ## 7. Security Headers
 
-Security headers provide an additional layer of protection against common attacks such as XSS, clickjacking, and code injection. Here are some headers implemented in Poseidon:
+Security headers add an extra layer of protection against common web vulnerabilities like Cross-Site Scripting (XSS) and Clickjacking.
 
-- **Content-Security-Policy**: Prevents XSS attacks by controlling the sources of content that the browser is allowed to load.
-- **X-Frame-Options**: Prevents clickjacking by restricting iframes to the same origin.
-- **Strict-Transport-Security**: Ensures that HTTPS is used for all communications with the server.
+**Implemented Headers:**
+- **Content-Security-Policy**: Restricts the sources from which content can be loaded.
+- **X-Frame-Options**: Prevents the API from being embedded in iframes, mitigating Clickjacking attacks.
+- **Strict-Transport-Security**: Enforces the use of HTTPS for all communications.
 
-These headers can be added using middleware in the `Startup.cs` file or `Program.cs` configuration.
+These headers are configured via middleware to ensure consistent application across all responses.
 
 ---
 
 ## 8. Logging and Monitoring
 
-Poseidon uses **Serilog** for logging, and logs should be centrally monitored to detect suspicious activity or potential security incidents.
+Comprehensive logging and monitoring are essential for detecting and responding to security incidents.
 
-### Logging Considerations:
+**Logging:**
+- **Serilog**: Utilized for structured and detailed logging of API activities.
+- **Sensitive Data Exclusion**: Ensure that logs do not contain sensitive information like passwords or JWT tokens.
 
-- **Sensitive Data**: Ensure sensitive data such as passwords and JWT tokens are never logged.
-- **Access Logs**: Log user access patterns to detect unusual behavior.
-- **Error Logs**: Log any unauthorized access attempts and security-related errors for auditing.
+**Monitoring:**
+- **Real-time Monitoring**: Implement tools to monitor API performance and detect unusual patterns.
+- **Alerting**: Set up alerts for suspicious activities or potential security breaches.
 
-Logging and monitoring are critical to detect and respond to security incidents in real-time.
+Effective logging and monitoring facilitate timely detection and resolution of security issues.
 
 ---
 
 ## 9. Vulnerability Scanning
 
-To detect potential security vulnerabilities in the Poseidon API, we have integrated **Trivy** for container scanning.
+Regular vulnerability scanning helps identify and remediate security weaknesses in the Poseidon API.
 
-### Steps for Vulnerability Scanning:
+**Tools Used:**
+- **Trivy**: Integrated for scanning Docker images to detect known vulnerabilities.
 
-1. **Trivy Configuration**: A `trivy-config.yaml` file is used to specify severity levels and scanning options.
-2. **CI/CD Integration**: Trivy is run as part of the CI/CD pipeline to automatically scan Docker images for known vulnerabilities.
-3. **Reporting**: Vulnerabilities with a severity of **HIGH** or **CRITICAL** will fail the CI pipeline, ensuring they are fixed before production deployment.
+**Process:**
+1. **Configuration**: Define scanning parameters and severity levels in `trivy-config.yaml`.
+2. **Automation**: Incorporate Trivy scans into the CI/CD pipeline to automatically scan images during the build process.
+3. **Reporting**: Fail builds if high or critical vulnerabilities are detected, ensuring they are addressed before deployment.
+
+This proactive approach helps maintain a secure and resilient API.
 
 ---
 
 ## 10. Best Practices and Recommendations
 
-- **Use HTTPS Everywhere**: Always serve the API over HTTPS, especially in production environments.
-- **Enforce Strong Password Policies**: Ensure that passwords are strong (minimum length, special characters, etc.).
-- **Regularly Rotate Secrets**: Rotate API keys, JWT secrets, and database credentials periodically.
-- **Audit User Activity**: Regularly review logs and monitor access to detect any suspicious activity.
-- **Update Dependencies**: Regularly update third-party packages to mitigate the risk of vulnerabilities in dependencies.
-- **Run Penetration Tests**: Periodically run penetration tests to identify any security weaknesses.
+To further enhance the security of the Poseidon API, the following best practices are recommended:
+
+- **Use HTTPS Everywhere**: Ensure all endpoints are accessible only over HTTPS.
+- **Enforce Strong Password Policies**: Require complex passwords during user registration and updates.
+- **Regularly Rotate Secrets**: Change JWT keys and database credentials periodically to minimize risk.
+- **Audit User Activity**: Monitor and review logs to detect and investigate suspicious activities.
+- **Keep Dependencies Updated**: Regularly update all third-party libraries and frameworks to patch known vulnerabilities.
+- **Implement Penetration Testing**: Conduct periodic security assessments to identify and fix potential weaknesses.
+- **Educate Developers**: Train the development team on secure coding practices and emerging security threats.
+
+Adhering to these practices ensures that the Poseidon API remains secure against evolving threats.
 
 ---
-
-This **SecurityGuide.md** provides a comprehensive view of the security practices implemented in the Poseidon API. These measures ensure that the API remains secure, reliable, and resilient against potential attacks.
