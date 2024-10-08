@@ -532,8 +532,13 @@ Deploying the Poseidon API within a Kubernetes cluster offers scalability, resil
      ```bash
      minikube service poseidon-service --url
      ```
+     or
+    ```bash
+     kubectl port-forward svc/poseidon-service 8080:80
+     ```
    
    - Access the API via the provided URL (e.g., `http://192.168.49.2:31344/swagger`).
+   - Access the API via the provided URL (e.g., `http://localhost:8080/index.html`).
    
 5. **Monitor and Manage**:
    - Use Kubernetes tools to monitor pod health, logs, and resource usage:
