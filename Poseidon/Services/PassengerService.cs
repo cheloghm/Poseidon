@@ -80,5 +80,57 @@ namespace Poseidon.Services
                 name, pclass, sex, minAge, maxAge, minFare, maxFare);
         }
 
+        
+
+        //Statistical Methods
+        public async Task<int> GetTotalPassengersAsync()
+        {
+            return await _passengerRepository.GetTotalPassengersAsync();
+        }
+
+        public async Task<int> GetNumberOfMenAsync()
+        {
+            return await _passengerRepository.GetNumberOfMenAsync();
+        }
+
+        public async Task<int> GetNumberOfWomenAsync()
+        {
+            return await _passengerRepository.GetNumberOfWomenAsync();
+        }
+
+        public async Task<int> GetNumberOfBoysAsync()
+        {
+            return await _passengerRepository.GetNumberOfBoysAsync();
+        }
+
+        public async Task<int> GetNumberOfGirlsAsync()
+        {
+            return await _passengerRepository.GetNumberOfGirlsAsync();
+        }
+
+        public async Task<int> GetNumberOfAdultsAsync()
+        {
+            return await _passengerRepository.GetNumberOfAdultsAsync();
+        }
+
+        public async Task<int> GetNumberOfChildrenAsync()
+        {
+            return await _passengerRepository.GetNumberOfChildrenAsync();
+        }
+
+        public async Task<double> GetSurvivalRateByAgeRangeAsync(double minAge, double maxAge)
+        {
+            return await _passengerRepository.GetSurvivalRateByAgeRangeAsync(minAge, maxAge);
+        }
+
+        public async Task<double> GetSurvivalRateByGenderAsync(string sex)
+        {
+            return await _passengerRepository.GetSurvivalRateByGenderAsync(sex);
+        }
+
+        public async Task<double> GetSurvivalRateByClassAsync(int classNumber)
+        {
+            return await _passengerRepository.GetSurvivalRateByClassAsync(classNumber);
+        }
     }
 }

@@ -113,5 +113,109 @@ namespace Poseidon.Repositories
 
             return await _collection.Find(filter).ToListAsync();
         }
+
+        // New Statistical Methods
+        public async Task<int> GetTotalPassengersAsync()
+        {
+            return (int)await _collection.CountDocumentsAsync(FilterDefinition<Passenger>.Empty);
+        }
+
+        public async Task<int> GetNumberOfMenAsync()
+        {
+            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "male");
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<int> GetNumberOfWomenAsync()
+        {
+            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "female");
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<int> GetNumberOfBoysAsync()
+        {
+            // Assuming 'Age' less than a certain threshold and 'Sex' is male
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "male"),
+                Builders<Passenger>.Filter.Lt(p => p.Age, 18)
+            );
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<int> GetNumberOfGirlsAsync()
+        {
+            // Assuming 'Age' less than a certain threshold and 'Sex' is female
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "female"),
+                Builders<Passenger>.Filter.Lt(p => p.Age, 18)
+            );
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<int> GetNumberOfAdultsAsync()
+        {
+            // Assuming 'Age' 18 and above
+            var filter = Builders<Passenger>.Filter.Gte(p => p.Age, 18);
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<int> GetNumberOfChildrenAsync()
+        {
+            // Assuming 'Age' below 18
+            var filter = Builders<Passenger>.Filter.Lt(p => p.Age, 18);
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<double> GetSurvivalRateByAgeRangeAsync(double minAge, double maxAge)
+        {
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Gte(p => p.Age, minAge),
+                Builders<Passenger>.Filter.Lte(p => p.Age, maxAge)
+            );
+
+            var total = await _collection.CountDocumentsAsync(filter);
+            if (total == 0) return 0;
+
+            var survivors = await _collection.CountDocumentsAsync(
+                Builders<Passenger>.Filter.And(
+                    filter,
+                    Builders<Passenger>.Filter.Eq(p => p.Survived, 1)
+                )
+            );
+
+            return (double)survivors / total * 100;
+        }
+
+        public async Task<double> GetSurvivalRateByGenderAsync(string sex)
+        {
+            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), sex.ToLower());
+            var total = await _collection.CountDocumentsAsync(filter);
+            if (total == 0) return 0;
+
+            var survivors = await _collection.CountDocumentsAsync(
+                Builders<Passenger>.Filter.And(
+                    filter,
+                    Builders<Passenger>.Filter.Eq(p => p.Survived, 1)
+                )
+            );
+
+            return (double)survivors / total * 100;
+        }
+
+        public async Task<double> GetSurvivalRateByClassAsync(int classNumber)
+        {
+            var filter = Builders<Passenger>.Filter.Eq(p => p.Pclass, classNumber);
+            var total = await _collection.CountDocumentsAsync(filter);
+            if (total == 0) return 0;
+
+            var survivors = await _collection.CountDocumentsAsync(
+                Builders<Passenger>.Filter.And(
+                    filter,
+                    Builders<Passenger>.Filter.Eq(p => p.Survived, 1)
+                )
+            );
+
+            return (double)survivors / total * 100;
+        }
     }
 }
