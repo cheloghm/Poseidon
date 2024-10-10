@@ -9,7 +9,7 @@ namespace Poseidon.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly IMemoryCache _cache;
-        private readonly int _limit = 100; // e.g., 100 requests
+        private readonly int _limit = 1000; // e.g., 100 requests
         private readonly TimeSpan _timeWindow = TimeSpan.FromMinutes(1);
 
         public RateLimitingMiddleware(RequestDelegate next, IMemoryCache cache)

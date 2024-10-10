@@ -6,6 +6,7 @@ using Poseidon.Interfaces.IUtility;
 using Poseidon.Utilities;
 using System.Text;
 using Poseidon.Config;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,14 @@ builder.Services.AddSingleton<IJwtUtility>(sp =>
 
 // Add services to the container
 builder.Services.AddMongoDb(builder.Configuration);
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Serialize enums as strings
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        // Optionally, you can ignore null values
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddServices();
 builder.Services.PasswordHash();
 builder.Services.AddRepositories();

@@ -15,12 +15,12 @@ namespace Poseidon.Tests.UnitTests.Controllers
     public class PassengerControllerTests
     {
         private readonly Mock<IPassengerService> _mockPassengerService;
-        private readonly PassengerController _controller;
+        private readonly PeopleController _controller;
 
         public PassengerControllerTests()
         {
             _mockPassengerService = new Mock<IPassengerService>();
-            _controller = new PassengerController(_mockPassengerService.Object, null); // AutoMapper is not used in these tests.
+            _controller = new PeopleController(_mockPassengerService.Object, null); // AutoMapper is not used in these tests.
         }
 
         [Fact]
@@ -166,7 +166,7 @@ namespace Poseidon.Tests.UnitTests.Controllers
             mockMapper.Setup(m => m.Map<Passenger>(passengerDTO)).Returns(passenger);
             mockService.Setup(s => s.CreateAsync(passenger)).Returns(Task.CompletedTask);
 
-            var controller = new PassengerController(mockService.Object, mockMapper.Object);
+            var controller = new PeopleController(mockService.Object, mockMapper.Object);
 
             // Act
             var result = await controller.Create(passengerDTO);

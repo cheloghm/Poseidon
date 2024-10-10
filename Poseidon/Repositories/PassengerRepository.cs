@@ -120,6 +120,12 @@ namespace Poseidon.Repositories
             return (int)await _collection.CountDocumentsAsync(FilterDefinition<Passenger>.Empty);
         }
 
+        public async Task<int> GetNumberOfSurvivorsAsync()
+        {
+            var filter = Builders<Passenger>.Filter.Eq(p => p.Survived, 1);
+            return (int)await _collection.CountDocumentsAsync(filter);
+        }
+
         public async Task<int> GetNumberOfMenAsync()
         {
             var filter = Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression("^male$", "i"));
@@ -217,5 +223,24 @@ namespace Poseidon.Repositories
 
             return (double)survivors / total * 100;
         }
+
+        public async Task<IEnumerable<Passenger>> GetPassengersByAgeRangeAsync(double minAge, double maxAge)
+        {
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Gte(p => p.Age, minAge),
+                Builders<Passenger>.Filter.Lte(p => p.Age, maxAge)
+            );
+            return await _collection.Find(filter).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Passenger>> GetPassengersByFareRangeAsync(double minFare, double maxFare)
+        {
+            var filter = Builders<Passenger>.Filter.And(
+                Builders<Passenger>.Filter.Gte(p => p.Fare, minFare),
+                Builders<Passenger>.Filter.Lte(p => p.Fare, maxFare)
+            );
+            return await _collection.Find(filter).ToListAsync();
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using Poseidon.DTOs;
 using System.Threading.Tasks;
 using Swashbuckle.AspNetCore.Annotations;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Poseidon.Controllers
 {
@@ -37,6 +38,7 @@ namespace Poseidon.Controllers
         /// <param name="loginDTO">The login credentials.</param>
         /// <returns>A JWT token for authenticated access.</returns>
         [HttpPost("login")]
+        [AllowAnonymous]
         [SwaggerOperation(Summary = "User login", Description = "Authenticate user and receive a JWT token for authorized access.")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
@@ -53,7 +55,7 @@ namespace Poseidon.Controllers
         /// <param name="id">The unique identifier of the user.</param>
         /// <returns>The user details.</returns>
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User, Admin")]
         [SwaggerOperation(Summary = "Get user details", Description = "Retrieve details of a specific user by their ID.")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -72,12 +74,30 @@ namespace Poseidon.Controllers
         /// <param name="userDTO">The updated user details.</param>
         /// <returns>No content.</returns>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User, Admin")]
         [SwaggerOperation(Summary = "Update user details", Description = "Update information of an existing user.")]
         public async Task<IActionResult> Update(string id, [FromBody] UserDTO userDTO)
         {
             await _userService.UpdateUserAsync(id, userDTO);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Retrieves the details of the currently authenticated user.
+        /// </summary>
+        /// <returns>The user details.</returns>
+        [HttpGet("me")]
+        [Authorize(Roles = "User, Admin")]
+        [SwaggerOperation(Summary = "Get current user details", Description = "Retrieve details of the currently authenticated user.")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userService.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
         }
 
         /// <summary>

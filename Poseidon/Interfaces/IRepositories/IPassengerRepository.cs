@@ -19,6 +19,22 @@ namespace Poseidon.Interfaces.IRepositories
             double? maxAge = null,
             double? minFare = null,
             double? maxFare = null);
+
+        // Statistical Methods
+        Task<int> GetTotalPassengersAsync();
+        Task<int> GetNumberOfMenAsync();
+        Task<int> GetNumberOfWomenAsync();
+        Task<int> GetNumberOfBoysAsync();
+        Task<int> GetNumberOfGirlsAsync();
+        Task<int> GetNumberOfAdultsAsync();
+        Task<int> GetNumberOfChildrenAsync();
+        Task<int> GetNumberOfSurvivorsAsync();
+        Task<IEnumerable<Passenger>> GetPassengersByAgeRangeAsync(double minAge, double maxAge);
+        Task<IEnumerable<Passenger>> GetPassengersByFareRangeAsync(double minFare, double maxFare);
+
+        Task<double> GetSurvivalRateByAgeRangeAsync(double minAge, double maxAge);
+        Task<double> GetSurvivalRateByGenderAsync(string sex);
+        Task<double> GetSurvivalRateByClassAsync(int classNumber);
     }
 
 }

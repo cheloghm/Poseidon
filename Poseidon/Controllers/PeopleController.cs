@@ -15,12 +15,12 @@ namespace Poseidon.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PassengerController : ControllerBase
+    public class PeopleController : ControllerBase
     {
         private readonly IPassengerService _passengerService;
         private readonly IMapper _mapper;
 
-        public PassengerController(IPassengerService passengerService, IMapper mapper)
+        public PeopleController(IPassengerService passengerService, IMapper mapper)
         {
             _passengerService = passengerService;
             _mapper = mapper;
