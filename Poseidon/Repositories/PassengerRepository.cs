@@ -122,21 +122,21 @@ namespace Poseidon.Repositories
 
         public async Task<int> GetNumberOfMenAsync()
         {
-            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "male");
+            var filter = Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression("^male$", "i"));
             return (int)await _collection.CountDocumentsAsync(filter);
         }
 
         public async Task<int> GetNumberOfWomenAsync()
         {
-            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "female");
+            var filter = Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression("^female$", "i"));
             return (int)await _collection.CountDocumentsAsync(filter);
         }
 
         public async Task<int> GetNumberOfBoysAsync()
         {
-            // Assuming 'Age' less than a certain threshold and 'Sex' is male
+            // Assuming 'Age' less than 18 and 'Sex' is male
             var filter = Builders<Passenger>.Filter.And(
-                Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "male"),
+                Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression("^male$", "i")),
                 Builders<Passenger>.Filter.Lt(p => p.Age, 18)
             );
             return (int)await _collection.CountDocumentsAsync(filter);
@@ -144,9 +144,9 @@ namespace Poseidon.Repositories
 
         public async Task<int> GetNumberOfGirlsAsync()
         {
-            // Assuming 'Age' less than a certain threshold and 'Sex' is female
+            // Assuming 'Age' less than 18 and 'Sex' is female
             var filter = Builders<Passenger>.Filter.And(
-                Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), "female"),
+                Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression("^female$", "i")),
                 Builders<Passenger>.Filter.Lt(p => p.Age, 18)
             );
             return (int)await _collection.CountDocumentsAsync(filter);
@@ -188,7 +188,7 @@ namespace Poseidon.Repositories
 
         public async Task<double> GetSurvivalRateByGenderAsync(string sex)
         {
-            var filter = Builders<Passenger>.Filter.Eq(p => p.Sex.ToLower(), sex.ToLower());
+            var filter = Builders<Passenger>.Filter.Regex(p => p.Sex, new BsonRegularExpression($"^{sex}$", "i"));
             var total = await _collection.CountDocumentsAsync(filter);
             if (total == 0) return 0;
 
