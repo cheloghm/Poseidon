@@ -1,0 +1,17 @@
+db.Users.find().limit(5).pretty()
+db.Passengers.find().limit(5).pretty()
+show collections
+use PoseidonDB
+db.Passengers.find().limit(5).pretty()
+show collections
+use PosidonDB
+show dbs
+db.Passengers.find().limit(5).pretty()
+show collections
+use PoseidonDB
+user PoseidonDB
+show dbs
+db.Passengers.find().limit(5).pretty()
+show collections
+use PoseidonDB
+show dbs
