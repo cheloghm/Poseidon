@@ -21,6 +21,8 @@ spec:
           env:
             - name: IS_K8S
               value: "true"
+            - name: ALLOWED_ORIGINS
+              value: "http://localhost:8081,http://poseidon-frontend-service"
 
             # Use Kubernetes secrets for sensitive data
             - name: MONGO_INITDB_ROOT_USERNAME

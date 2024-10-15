@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poseidon-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poseidon-frontend
+  template:
+    metadata:
+      labels:
+        app: poseidon-frontend
+    spec:
+      dnsPolicy: ClusterFirst
+      containers:
+        - name: poseidon-frontend
+          image: cheloghm/poseidon-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_APP_API_BASE_URL
+              value: "/api"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20

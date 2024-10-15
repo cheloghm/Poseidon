@@ -13,11 +13,6 @@ services:
       - ./data/db:/data/db
     ports:
       - "27017:27017"
-    healthcheck:
-      test: "mongosh --eval 'db.adminCommand(\"ping\")'"
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - poseidon-net
 
@@ -34,7 +29,6 @@ services:
       MONGO_DB_NAME: ${MONGO_DB_NAME}
       DatabaseConfig__ConnectionStringDocker: ${DatabaseConfig__ConnectionStringDocker}
       DatabaseConfig__DatabaseName: ${DatabaseConfig__DatabaseName}
-      # JWT configuration using the same variable names as in .env
       Jwt__Key: ${Jwt__Key}
       Jwt__Issuer: ${Jwt__Issuer}
       Jwt__Audience: ${Jwt__Audience}
@@ -42,6 +36,16 @@ services:
       - mongodb
     networks:
       - poseidon-net
+
+  poseidon-frontend:
+    image: cheloghm/poseidon-frontend:latest
+    container_name: poseidon_frontend
+    ports:
+      - "3000:80"  # Serve frontend on port 3000
+    networks:
+      - poseidon-net
+    depends_on:
+      - poseidon-api
 
   mongodb-seeder:
     image: mongo:latest
