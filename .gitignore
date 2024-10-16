@@ -363,3 +363,4 @@ MigrationBackup/
 .env
 bfg-1.14.0.jar
 Poseidon/.env
+data/

@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: poseidon-frontend
+  labels:
+    app: poseidon-frontend
 spec:
   replicas: 1
   selector:
@@ -12,7 +14,6 @@ spec:
       labels:
         app: poseidon-frontend
     spec:
-      dnsPolicy: ClusterFirst
       containers:
         - name: poseidon-frontend
           image: cheloghm/poseidon-frontend:latest
@@ -22,6 +23,10 @@ spec:
           env:
             - name: VITE_APP_API_BASE_URL
               value: "/api"
+            - name: API_SERVICE
+              value: "poseidon-service"
+            - name: API_PORT
+              value: "80"
           readinessProbe:
             httpGet:
               path: /

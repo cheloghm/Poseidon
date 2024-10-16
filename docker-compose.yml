@@ -16,13 +16,13 @@ services:
     networks:
       - poseidon-net
 
-  poseidon-api:
+  poseidon-service:  # Renamed from poseidon-api to poseidon-service
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: poseidon_api
+    container_name: poseidon_service  # Optional: For clarity
     ports:
-      - "9090:8080"
+      - "9090:8080"  # Host port 9090 maps to container port 8080
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -45,7 +45,10 @@ services:
     networks:
       - poseidon-net
     depends_on:
-      - poseidon-api
+      - poseidon-service  # Updated dependency
+    environment:
+      - API_SERVICE=poseidon-service
+      - API_PORT=8080
 
   mongodb-seeder:
     image: mongo:latest
