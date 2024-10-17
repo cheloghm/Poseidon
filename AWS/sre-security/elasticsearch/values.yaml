@@ -1,0 +1,25 @@
+# sre-security/elasticsearch/values.yaml
+
+replicas: 1
+image:
+  repository: docker.elastic.co/elasticsearch/elasticsearch
+  tag: 7.10.0
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+
+esConfig:
+  elasticsearch.yml: |
+    cluster.name: poseidon-elasticsearch
+    node.name: elasticsearch-node
+    discovery.type: single-node
+
+service:
+  type: ClusterIP
+  port: 9200

@@ -1,0 +1,15 @@
+# sre-security/trivy/values.yaml
+
+scanner:
+  image:
+    repository: aquasec/trivy
+    tag: 0.19.2
+    pullPolicy: IfNotPresent
+
+cronJob:
+  schedule: "0 */6 * * *" # Runs every 6 hours
+  image:
+    repository: aquasec/trivy
+    tag: 0.19.2
+    pullPolicy: IfNotPresent
+  command: ["trivy", "image", "--exit-code", "1", "--cache-dir", "/tmp/.trivycache", "your-dockerhub-username/poseidon-backend:latest"]

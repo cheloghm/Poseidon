@@ -1442,3 +1442,9 @@ Navigate to [Docker Hub](https://hub.docker.com/) and check your repository to c
 By following the above instructions, any user should be able to set up, configure, and deploy the **Poseidon API Orchestrator** seamlessly. Whether using Docker Compose for local development or Kubernetes for production deployments, the documentation provides clear and actionable steps to get the project up and running.
 
 If you encounter any issues or have further questions, please feel free to open an issue or reach out for assistance!
+
+
+Important Notice:
+The AWS deployment configurations and guidelines located in the AWS directory are currently unverified and have not undergone comprehensive testing. While we have meticulously designed these instructions and setup scripts to facilitate a seamless deployment process, we advise users to follow the guidelines with careful attention to detail. Should you encounter any challenges or have suggestions for enhancements, your feedback is highly appreciated. Please consider opening an issue or contributing directly to help us refine and validate the AWS deployment workflow.
+
+---
