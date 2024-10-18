@@ -98,13 +98,13 @@ Local deployment is ideal for development and testing purposes. Running the Pose
    Once the application is running, you can access the Swagger UI for API documentation at:
 
    ```
-   http://localhost:8080/swagger
+   http://localhost:<Port number>/swagger
    ```
 
    Alternatively, access the main page:
 
    ```
-   http://localhost:8080/index.html
+   http://localhost:<Port number>/index.html
    ```
 
 ---
@@ -176,13 +176,19 @@ Deploying Poseidon API using Docker ensures consistency across different environ
    With Docker containers running, access the API at:
 
    ```
-   http://localhost:8080/swagger
+   http://localhost:9090/swagger
    ```
 
    Or the main application page:
 
    ```
-   http://localhost:8080/index.html
+   http://localhost:9090/index.html
+   ```
+
+   Frontend running on:
+
+   ```
+   http://localhost:3000/
    ```
 
 7. **Stop the Containers**
@@ -354,11 +360,19 @@ Once deployed, you can interact with the Poseidon API through the exposed servic
    ```
    http://<minikube-ip>:<port>/swagger
    ```
+   or
+   ```
+   http://<minikube-ip>:<port>/index.html
+   ```
 
    **Example:**
 
    ```
    http://192.168.49.2:31344/swagger
+   ```
+   or
+   ```
+   http://192.168.49.2:31344/index.html
    ```
 
 2. **Main Application Page**

@@ -1,7 +1,3 @@
-Certainly! Providing a comprehensive `README.md` for the **Poseidon API Orchestrator** will ensure that users can effortlessly set up, configure, and deploy the backend service. Below is an enhanced version of your `README.md` with detailed instructions on customizing environment variables, building and pushing Docker images, and running the project using Docker Compose and Kubernetes.
-
----
-
 # Poseidon API Orchestrator
 
 ![Poseidon Logo](https://your-logo-url.com/logo.png) <!-- Replace with your actual logo URL -->
@@ -471,7 +467,12 @@ You can run the **Poseidon API Orchestrator** using either **Docker Compose** or
 
 5. **Access the API:**
 
-   Once Docker Compose is up and MongoDB is seeded, access the API documentation at [http://localhost:8080/swagger](http://localhost:8080/swagger).
+   Once Docker Compose is up and MongoDB is seeded, access the API documentation at [http://localhost:9090/index.html](http://localhost:9090/index.html).
+
+   Access the Frontend:
+   For the frontend, the application will be available at:
+   http://localhost:3000/
+   These URLs match the settings from the docker-compose.yml file where the backend is exposed on port 9090 and the frontend is served on port 3000.
 
 **Notes:**
 
@@ -535,7 +536,15 @@ You can run the **Poseidon API Orchestrator** using either **Docker Compose** or
      kubectl port-forward service/poseidon-service 8080:80
      ```
 
-     Access the API documentation at [http://localhost:8080/swagger](http://localhost:8080/swagger).
+     Access the API documentation at [http://localhost:8080/index.html](http://localhost:8080/index.html).
+
+     Access the Frontend via Port Forwarding:
+     Forward port 8081 for the frontend:
+
+     kubectl port-forward service/poseidon-frontend-service 8081:80
+     The frontend will be accessible at:
+
+     http://localhost:8081
 
    - **Using LoadBalancer (if supported):**
 
