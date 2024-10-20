@@ -5,6 +5,11 @@
 
 **Poseidon API Orchestrator** is a robust RESTful web API built with **.NET 8** and **MongoDB**. Designed to handle complex backend engineering tasks, this API facilitates user authentication, data management, and seamless deployment in both local and cloud environments using **Docker**, **Kubernetes**, and **AWS**.
 
+### Frontend Implementation
+
+You can find the frontend implementation of the Poseidon project here: [Poseidon Frontend](https://github.com/cheloghm/poseidon-frontend.git). This frontend is designed to interact seamlessly with the Poseidon API, providing a user-friendly interface for the application's functionalities.
+
+
 ---
   
 ## Table of Contents
@@ -835,3 +840,7 @@ This project is licensed under the [MIT License](LICENSE.txt). You are free to u
 The AWS deployment configurations and guidelines located in the AWS directory are currently unverified and have not undergone comprehensive testing. While I have meticulously designed these instructions and setup scripts to facilitate a seamless deployment process, I advise users to follow the guidelines with careful attention to detail. Should you encounter any challenges or have suggestions for enhancements, your feedback is highly appreciated. Please consider opening an issue or contributing directly to help me refine and validate the AWS deployment workflow.
 
 ---
+
+### Frontend Implementation
+
+You can find the frontend implementation of the Poseidon project here: [Poseidon Frontend](https://github.com/cheloghm/poseidon-frontend.git). This frontend is designed to interact seamlessly with the Poseidon API, providing a user-friendly interface for the application's functionalities.
