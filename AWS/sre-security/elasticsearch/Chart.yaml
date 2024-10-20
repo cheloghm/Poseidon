@@ -1,8 +1,0 @@
-# sre-security/elasticsearch/Chart.yaml
-
-apiVersion: v2
-name: poseidon-elasticsearch
-description: Helm chart for deploying Elasticsearch
-type: application
-version: 1.0.0
-appVersion: "7.10.0"

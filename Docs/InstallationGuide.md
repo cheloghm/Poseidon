@@ -1,9 +1,10 @@
+```markdown
 # Poseidon API Orchestrator - Detailed Installation Guide
 
-Welcome to the **Poseidon API Orchestrator** installation guide. This document will walk you through every step necessary to set up and run the Poseidon project locally, using Docker, or within a Kubernetes environment. Whether you're a seasoned developer or just getting started, this guide is designed to help you deploy the project seamlessly.
+Welcome to the **Poseidon API Orchestrator** installation guide. This document will walk you through every step necessary to set up and run the Poseidon project locally, using Docker, Kubernetes, or deploying to AWS. Whether you're a seasoned developer or just getting started, this guide is designed to help you deploy the project seamlessly.
 
 ---
-
+  
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
@@ -14,10 +15,14 @@ Welcome to the **Poseidon API Orchestrator** installation guide. This document w
 4. [Running the Project Locally (IDE like Visual Studio)](#running-the-project-locally-ide-like-visual-studio)
 5. [Running the Project with Docker](#running-the-project-with-docker)
 6. [Running the Project in Kubernetes](#running-the-project-in-kubernetes)
-7. [Building and Pushing the MongoDB Docker Image](#building-and-pushing-the-mongodb-docker-image)
-8. [Running Unit Tests](#running-unit-tests)
-9. [Additional Configuration](#additional-configuration)
-10. [Troubleshooting](#troubleshooting)
+7. [AWS Deployment](#aws-deployment)
+    - [Configure Infrastructure with Terraform and Terragrunt](#configure-infrastructure-with-terraform-and-terragrunt)
+    - [Deploy Applications to AWS EKS](#deploy-applications-to-aws-eks)
+    - [Accessing the Application on AWS](#accessing-the-application-on-aws)
+8. [Building and Pushing the MongoDB Docker Image](#building-and-pushing-the-mongodb-docker-image)
+9. [Running Unit Tests](#running-unit-tests)
+10. [Additional Configuration](#additional-configuration)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -42,6 +47,17 @@ Before you begin, ensure that you have the following tools installed on your sys
 
 - **MongoDB** (if running locally):
   - [MongoDB Community Edition](https://www.mongodb.com/try/download/community)
+
+- **AWS Account**: [Sign Up](https://aws.amazon.com/) if you don't have one.
+
+- **Terraform & Terragrunt**: Installed via the setup scripts.
+  - [Terraform Installation Guide](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+  - [Terragrunt Installation Guide](https://terragrunt.gruntwork.io/docs/getting-started/install/)
+
+- **Helm**: Kubernetes package manager.
+  - [Install Helm](https://helm.sh/docs/intro/install/)
+
+- **GitHub Account**: For accessing GitHub Actions (optional but recommended for CI/CD).
 
 - **IDE (Optional)**: Visual Studio, Visual Studio Code, or any preferred Integrated Development Environment for .NET development.
   - [Download Visual Studio](https://visualstudio.microsoft.com/downloads/)
@@ -93,12 +109,12 @@ MONGO_INITDB_ROOT_PASSWORD=strongPassword
 MONGO_DB_NAME=PoseidonDB
 
 # Docker/Kubernetes MongoDB Connection String
-MONGO_CONNECTION_STRING_K8S=mongodb://rootUser:strongPassword@poseidon-mongodb.default.svc.cluster.local:27017
+DATABASE_CONFIG__ConnectionStringDocker=mongodb://rootUser:strongPassword@poseidon-mongodb.default.svc.cluster.local:27017/PoseidonDB?authSource=admin
 
 # JWT Configuration
-JWT_KEY=ThisIsASecretKeyWithAtLeast32Characters
-JWT_ISSUER=PoseidonAPI
-JWT_AUDIENCE=PoseidonClient
+Jwt__Key=ThisIsASecretKeyWithAtLeast32Characters
+Jwt__Issuer=PoseidonAPI
+Jwt__Audience=PoseidonClient
 ```
 
 **Important Notes:**
@@ -119,12 +135,12 @@ MONGO_INITDB_ROOT_PASSWORD=strongPassword
 MONGO_DB_NAME=PoseidonDB
 
 # Local Development MongoDB Connection String
-MONGO_CONNECTION_STRING_LOCAL=mongodb://rootUser:strongPassword@localhost:27017/PoseidonDB?authSource=admin
+DatabaseConfig__ConnectionString=mongodb://rootUser:strongPassword@localhost:27017/PoseidonDB?authSource=admin
 
 # JWT Configuration
-JWT_KEY=ThisIsASecretKeyWithAtLeast32Characters
-JWT_ISSUER=PoseidonAPI
-JWT_AUDIENCE=PoseidonClient
+Jwt__Key=ThisIsASecretKeyWithAtLeast32Characters
+Jwt__Issuer=PoseidonAPI
+Jwt__Audience=PoseidonClient
 ```
 
 **Important Notes:**
@@ -168,7 +184,7 @@ Running the Poseidon API locally through an IDE allows for easy debugging and de
    - Ensure that the `.env` file inside the `Poseidon/` directory is correctly configured as outlined in [Environment Setup](#environment-setup).
 
 5. **Run the Project**
-
+   
    - **Using Visual Studio:**
      - Press **F5** or click the **Run** button to start the application in debug mode.
    
@@ -179,17 +195,17 @@ Running the Poseidon API locally through an IDE allows for easy debugging and de
 
 6. **Access the API**
 
-   - Once the application is running, you can access the API documentation via Swagger UI at:
-   
-     ```
-     http://localhost:8080/swagger
-     ```
+   Once the application is running, you can access the Swagger UI for API documentation at:
 
-   - Alternatively, access the main application page at:
-   
-     ```
-     http://localhost:8080/index.html
-     ```
+   ```
+   http://localhost:8080/swagger
+   ```
+
+   Alternatively, access the main page:
+
+   ```
+   http://localhost:8080/index.html
+   ```
 
 **Troubleshooting Tips:**
 
@@ -239,7 +255,7 @@ Using Docker to run the Poseidon API ensures consistency across different enviro
    To populate MongoDB with the initial Titanic dataset, execute the MongoDB seeding container.
 
    ```bash
-   docker run --rm cheloghm/mongo-seed:latest
+   docker run --rm your-dockerhub-username/mongo-seed:latest
    ```
 
    **Explanation:**
@@ -257,24 +273,18 @@ Using Docker to run the Poseidon API ensures consistency across different enviro
    **Expected Output:**
 
    ```
-   CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS          PORTS                    NAMES
-   abcdef123456   cheloghm/poseidon-api:latest   "dotnet Poseidon.Api…"   10 seconds ago   Up 9 seconds    0.0.0.0:8080->8080/tcp   poseidon_api_1
-   fedcba654321   mongo:latest                   "docker-entrypoint.s…"   10 seconds ago   Up 9 seconds    27017/tcp                poseidon_mongodb_1
+   CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS          PORTS                    NAMES
+   abcdef123456   your-dockerhub-username/poseidon-api:latest   "dotnet Poseidon.Api…"   10 seconds ago   Up 9 seconds    0.0.0.0:8080->8080/tcp   poseidon_api_1
+   fedcba654321   mongo:latest                          "docker-entrypoint.s…"   10 seconds ago   Up 9 seconds    27017/tcp                poseidon_mongodb_1
    ```
 
 6. **Access the API**
 
-   With Docker containers running, access the API at:
+   Open your browser and navigate to [http://localhost:8080/swagger](http://localhost:8080/swagger) to view the API documentation.
 
-   ```
-   http://localhost:8080/swagger
-   ```
+   **Access the Frontend (If Applicable):**
 
-   Or the main application page:
-
-   ```
-   http://localhost:8080/index.html
-   ```
+   If a frontend service is available, it will be accessible at [http://localhost:3000](http://localhost:3000).
 
 7. **Stop the Containers**
 
@@ -410,7 +420,115 @@ Deploying the Poseidon API and MongoDB in a Kubernetes cluster provides scalabil
 
 ---
 
-## 7. Building and Pushing the MongoDB Docker Image
+## 7. AWS Deployment
+
+Deploying the **Poseidon API Orchestrator** to AWS leverages **Terraform**, **Terragrunt**, and **Helm** for infrastructure provisioning and application deployment. Follow the steps below to deploy to AWS.
+
+### Configure Infrastructure with Terraform and Terragrunt
+
+1. **Navigate to the AWS Directory**
+
+   ```bash
+   cd Poseidon/AWS
+   ```
+
+2. **Run the Setup Script**
+
+   The `setup.sh` script installs necessary tools such as AWS CLI, Terraform, Terragrunt, kubectl, and Helm.
+
+   ```bash
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
+   ```
+
+   **What the Setup Script Does:**
+
+   - **Installs AWS CLI:** Command-line tool for interacting with AWS services.
+   - **Installs Terraform:** Infrastructure as Code (IaC) tool for provisioning AWS resources.
+   - **Installs Terragrunt:** A thin wrapper for Terraform that provides extra features like DRY configurations and remote state management.
+   - **Installs kubectl:** Kubernetes command-line tool for interacting with the cluster.
+   - **Installs Helm:** Kubernetes package manager for deploying applications.
+   - **Installs kubectx and kubens (optional):** Tools for switching between Kubernetes contexts and namespaces.
+
+   *Ensure you have administrative privileges to execute the script.*
+
+3. **Initialize and Deploy Infrastructure**
+
+   Deploy the AWS infrastructure using Terragrunt.
+
+   ```bash
+   cd terraform/environments/prod
+   terragrunt init
+   terragrunt apply -auto-approve
+   ```
+
+   **What This Step Does:**
+
+   - **Provisions AWS Resources:** VPC, subnets, EKS cluster, IAM roles, security groups, and Kinesis streams.
+   - **Manages Remote State:** Uses S3 bucket and DynamoDB table for storing Terraform state and managing locks.
+
+   **Note:** Ensure that the S3 bucket (`poseidon-terraform-state`) and DynamoDB table (`poseidon-terraform-lock`) exist. If not, create them via the AWS Console or using Terraform scripts.
+
+### Deploy Applications to AWS EKS
+
+1. **Deploy Applications via Helm Charts**
+
+   After the infrastructure is up, deploy the Kubernetes applications using the deploy script.
+
+   ```bash
+   cd ../../scripts
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+   **What the Deploy Script Does:**
+
+   1. **Configures kubectl:** Sets up the kubeconfig to interact with the newly created EKS cluster.
+   2. **Applies Kubernetes Manifests:** Deployments, Services, ConfigMaps, Secrets, PersistentVolumeClaims.
+   3. **Installs NGINX Ingress Controller:** Manages external access to services.
+   4. **Deploys CronJobs:** Sets up scheduled backups for MongoDB.
+   5. **Deploys ELK Stack and DataDog:** For logging and monitoring.
+   6. **Deploys Poseidon Application via Helm:** Manages API, Frontend, MongoDB, and Logstash.
+
+   **Important:** Replace `<YOUR_DATADOG_API_KEY>` and `<YOUR_DATADog_APP_KEY>` in the `deploy.sh` script with your actual DataDog credentials before executing.
+
+2. **Verify Deployments**
+
+   Check the status of your deployments to ensure everything is running correctly.
+
+   ```bash
+   kubectl get pods -A
+   ```
+
+   You should see pods for the API, MongoDB, Frontend, Logstash, Ingress Controller, Elasticsearch, Kibana, DataDog agents, etc., all in the `Running` state.
+
+### Accessing the Application on AWS
+
+1. **Retrieve Ingress URL**
+
+   After successful deployment, access your application via the Load Balancer URL associated with your Ingress. You can find the Load Balancer DNS in the `poseidon-ingress` service.
+
+   ```bash
+   kubectl get ingress poseidon-ingress
+   ```
+
+   **Example Output:**
+
+   ```
+   NAME               CLASS    HOSTS              ADDRESS                                         PORTS   AGE
+   poseidon-ingress   <none>   your-domain.com     abcdef1234567890.elb.amazonaws.com             80      10m
+   ```
+
+2. **Navigate to the Application**
+
+   - **Frontend:** `http://your-domain.com`
+   - **API:** `http://your-domain.com/api`
+
+   Replace `your-domain.com` with your actual domain name or the DNS provided by AWS.
+
+---
+
+## 8. Building and Pushing the MongoDB Docker Image
 
 If you wish to create and push your own MongoDB seed image to Docker Hub (or another container registry), follow these steps. This allows for customization and sharing of the seed image.
 
@@ -492,7 +610,7 @@ If you wish to create and push your own MongoDB seed image to Docker Hub (or ano
 
 ---
 
-## 8. Running Unit Tests
+## 9. Running Unit Tests
 
 Unit tests are crucial for ensuring the reliability and correctness of your application. The Poseidon API includes a test project to validate its functionality. Follow these steps to run the unit tests.
 
@@ -542,11 +660,11 @@ Unit tests are crucial for ensuring the reliability and correctness of your appl
 
 ---
 
-## 9. Additional Configuration
+## 10. Additional Configuration
 
 Beyond the basic setup and deployment steps, there are additional configurations and optimizations you can implement to enhance the Poseidon API Orchestrator's functionality and performance.
 
-### 9.1 Configuring Kubernetes Secrets and ConfigMaps
+### 10.1 Configuring Kubernetes Secrets and ConfigMaps
 
 For secure handling of sensitive data in Kubernetes, use **Secrets** and **ConfigMaps**.
 
@@ -563,9 +681,9 @@ kubectl create secret generic jwt-secret \
 **Explanation:**
 - Creates a Kubernetes Secret named `jwt-secret` containing the JWT key.
 
-**Refer to the [Deployment Guide](#deployment-guide) for detailed steps on configuring and applying Kubernetes resources.**
+**Refer to the [Deployment Guide](#kubernetes-deployment) for detailed steps on configuring and applying Kubernetes resources.**
 
-### 9.2 Setting Up Health Checks
+### 10.2 Setting Up Health Checks
 
 Implementing health checks ensures that your application is running smoothly and can recover from failures.
 
@@ -591,7 +709,7 @@ livenessProbe:
 - **Readiness Probe**: Checks if the application is ready to accept traffic.
 - **Liveness Probe**: Checks if the application is alive and running.
 
-### 9.3 Implementing Logging and Monitoring
+### 10.3 Implementing Logging and Monitoring
 
 Integrate logging and monitoring tools to gain insights into application performance and troubleshoot issues effectively.
 
@@ -631,11 +749,11 @@ Integrate logging and monitoring tools to gain insights into application perform
 
 ---
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 Deployment and setup processes can sometimes present challenges. Below are common issues and their resolutions to help you navigate and resolve potential problems effectively.
 
-### 10.1 Common Issues and Solutions
+### 11.1 Common Issues and Solutions
 
 1. **Port Conflicts**
 
@@ -697,7 +815,7 @@ Deployment and setup processes can sometimes present challenges. Below are commo
      - Ensure that the test environment is correctly configured with necessary dependencies.
      - Verify that recent code changes have not introduced breaking changes.
 
-### 10.2 Steps to Diagnose Issues
+### 11.2 Steps to Diagnose Issues
 
 1. **Check Service Status**
 
@@ -734,7 +852,7 @@ Deployment and setup processes can sometimes present challenges. Below are commo
 4. **Validate Configuration Files**
 
    - Ensure that all YAML files for Kubernetes are correctly formatted and reference the correct images and configurations.
-
+   
    ```bash
    kubectl apply --dry-run=client -f k8s/Deployments/poseidon-deployment.yml
    ```
@@ -742,7 +860,7 @@ Deployment and setup processes can sometimes present challenges. Below are commo
 5. **Network Connectivity**
 
    - Test connectivity between services, especially between the Poseidon API and MongoDB.
-
+   
    ```bash
    # From within the Poseidon API pod
    kubectl exec -it <poseidon-pod-name> -- bash
@@ -754,7 +872,7 @@ Deployment and setup processes can sometimes present challenges. Below are commo
 
 ## Conclusion
 
-By following this **Detailed Installation Guide**, you should be able to set up and run the **Poseidon API Orchestrator** locally, within Docker containers, or in a Kubernetes environment with ease. This comprehensive guide ensures that developers of all experience levels can deploy the project effectively, troubleshoot common issues, and understand the necessary configurations.
+By following this **Detailed Installation Guide**, you should be able to set up and run the **Poseidon API Orchestrator** locally, within Docker containers, in a Kubernetes environment, or deploy it to AWS with ease. This comprehensive guide ensures that developers of all experience levels can deploy the project effectively, troubleshoot common issues, and understand the necessary configurations.
 
 For further assistance, refer to the following resources:
 

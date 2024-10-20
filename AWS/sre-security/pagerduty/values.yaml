@@ -1,5 +1,0 @@
-# sre-security/pagerduty/values.yaml
-
-pagerduty:
-  serviceKey: YOUR_PAGERDUTY_SERVICE_KEY
-  routingKey: YOUR_PAGERDUTY_ROUTING_KEY

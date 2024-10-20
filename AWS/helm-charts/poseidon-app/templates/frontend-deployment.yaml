@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poseidon-frontend
+  labels:
+    app: poseidon-frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: poseidon-frontend
+  template:
+    metadata:
+      labels:
+        app: poseidon-frontend
+    spec:
+      containers:
+        - name: poseidon-frontend
+          image: "{{ .Values.frontendImage.repository }}:{{ .Values.frontendImage.tag }}"
+          imagePullPolicy: {{ .Values.frontendImage.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_APP_API_BASE_URL
+              value: "{{ .Values.env.frontend.VITE_APP_API_BASE_URL }}"
+            - name: API_SERVICE
+              value: "{{ .Values.env.frontend.API_SERVICE }}"
+            - name: API_PORT
+              value: "{{ .Values.env.frontend.API_PORT }}"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20

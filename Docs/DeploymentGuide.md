@@ -1,6 +1,7 @@
+```markdown
 # Poseidon API Orchestrator - Deployment Guide
 
-**Welcome to the Deployment Guide for the Poseidon API Orchestrator!** This guide will walk you through deploying the Poseidon API in various environments, including local development, Docker containers, and Kubernetes clusters. Whether you're a beginner or an experienced developer, this guide is designed to help you deploy seamlessly.
+**Welcome to the Deployment Guide for the Poseidon API Orchestrator!** This guide will walk you through deploying the Poseidon API in various environments, including local development, Docker containers, Kubernetes clusters, and AWS. Whether you're a beginner or an experienced developer, this guide is designed to help you deploy seamlessly.
 
 *Before proceeding, ensure you have completed the [Installation Guide](./Docs/InstallationGuide.md) to set up the project.*
 
@@ -16,9 +17,13 @@
 4. [Kubernetes Deployment](#kubernetes-deployment)
     - [Configure and Apply Kubernetes Resources](#configure-and-apply-kubernetes-resources)
     - [Accessing the Application](#accessing-the-application)
-5. [Environment Variables](#environment-variables)
-6. [Troubleshooting](#troubleshooting)
-7. [Additional Resources](#additional-resources)
+5. [AWS Deployment](#aws-deployment)
+    - [Configure Infrastructure with Terraform and Terragrunt](#configure-infrastructure-with-terraform-and-terragrunt)
+    - [Deploy Applications to AWS EKS](#deploy-applications-to-aws-eks)
+    - [Accessing the Application on AWS](#accessing-the-application-on-aws)
+6. [Environment Variables](#environment-variables)
+7. [Troubleshooting](#troubleshooting)
+8. [Additional Resources](#additional-resources)
 
 ---
 
@@ -43,6 +48,15 @@ Before you begin deploying the Poseidon API Orchestrator, ensure you have the fo
 
 - **MongoDB**: NoSQL database for data storage.
   - Can be run locally or via Docker.
+
+- **AWS Account**: [Sign Up](https://aws.amazon.com/) if you don't have one.
+
+- **Terraform & Terragrunt**: Installed via the setup scripts.
+  - [Terraform Installation Guide](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+  - [Terragrunt Installation Guide](https://terragrunt.gruntwork.io/docs/getting-started/install/)
+
+- **Helm**: Kubernetes package manager.
+  - [Install Helm](https://helm.sh/docs/intro/install/)
 
 - **GitHub Account**: For accessing GitHub Actions (optional but recommended for CI/CD).
 
@@ -82,7 +96,7 @@ Local deployment is ideal for development and testing purposes. Running the Pose
    Ensure the `.env` file is correctly set up with the required environment variables. Refer to the [Environment Variables](#environment-variables) section for details.
 
 5. **Run the API**
-
+   
    - **Using Visual Studio or Your Preferred IDE:**
      - Open the `Poseidon.sln` solution file.
      - Select the `Poseidon` project.
@@ -148,7 +162,7 @@ Deploying Poseidon API using Docker ensures consistency across different environ
    To populate MongoDB with the initial Titanic dataset, execute the MongoDB seeding container.
 
    ```bash
-   docker run --rm cheloghm/mongo-seed:latest
+   docker run --rm your-dockerhub-username/mongo-seed:latest
    ```
 
    **Explanation:**
@@ -167,29 +181,17 @@ Deploying Poseidon API using Docker ensures consistency across different environ
 
    ```
    CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS          PORTS                    NAMES
-   abcdef123456   cheloghm/poseidon-api:latest   "dotnet Poseidon.Api…"   10 seconds ago   Up 9 seconds    0.0.0.0:8080->8080/tcp   poseidon_api_1
+   abcdef123456   your-dockerhub-username/poseidon-api:latest   "dotnet Poseidon.Api…"   10 seconds ago   Up 9 seconds    0.0.0.0:8080->8080/tcp   poseidon_api_1
    fedcba654321   mongo:latest                   "docker-entrypoint.s…"   10 seconds ago   Up 9 seconds    27017/tcp                poseidon_mongodb_1
    ```
 
 6. **Access the API**
 
-   With Docker containers running, access the API at:
+   Open your browser and navigate to [http://localhost:9090/swagger](http://localhost:9090/swagger) to view the API documentation.
 
-   ```
-   http://localhost:9090/swagger
-   ```
+   **Access the Frontend (If Applicable):**
 
-   Or the main application page:
-
-   ```
-   http://localhost:9090/index.html
-   ```
-
-   Frontend running on:
-
-   ```
-   http://localhost:3000/
-   ```
+   If a frontend service is available, it will be accessible at [http://localhost:3000](http://localhost:3000).
 
 7. **Stop the Containers**
 
@@ -221,8 +223,8 @@ Pushing Docker images to Docker Hub allows you to share your images or use them 
    Assign your Docker Hub username to the images:
 
    ```bash
-   docker tag cheloghm/poseidon-api:latest your-dockerhub-username/poseidon-api:latest
-   docker tag cheloghm/mongo-seed:latest your-dockerhub-username/mongo-seed:latest
+   docker tag your-dockerhub-username/poseidon-api:latest your-dockerhub-username/poseidon-api:latest
+   docker tag your-dockerhub-username/mongo-seed:latest your-dockerhub-username/mongo-seed:latest
    ```
 
    **Replace `your-dockerhub-username`** with your actual Docker Hub username.
@@ -449,7 +451,115 @@ Once deployed, you can interact with the Poseidon API through the exposed servic
 
 ---
 
-## 5. Environment Variables
+## 5. AWS Deployment
+
+Deploying the **Poseidon API Orchestrator** to AWS leverages **Terraform**, **Terragrunt**, and **Helm** for infrastructure provisioning and application deployment. Follow the steps below to deploy to AWS.
+
+### Configure Infrastructure with Terraform and Terragrunt
+
+1. **Navigate to the AWS Directory**
+
+   ```bash
+   cd Poseidon/AWS
+   ```
+
+2. **Run the Setup Script**
+
+   The `setup.sh` script installs necessary tools such as AWS CLI, Terraform, Terragrunt, kubectl, and Helm.
+
+   ```bash
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
+   ```
+
+   **What the Setup Script Does:**
+
+   - **Installs AWS CLI:** Command-line tool for interacting with AWS services.
+   - **Installs Terraform:** Infrastructure as Code (IaC) tool for provisioning AWS resources.
+   - **Installs Terragrunt:** A thin wrapper for Terraform that provides extra features like DRY configurations and remote state management.
+   - **Installs kubectl:** Kubernetes command-line tool for interacting with the cluster.
+   - **Installs Helm:** Kubernetes package manager for deploying applications.
+   - **Installs kubectx and kubens (optional):** Tools for switching between Kubernetes contexts and namespaces.
+
+   *Ensure you have administrative privileges to execute the script.*
+
+3. **Initialize and Deploy Infrastructure**
+
+   Deploy the AWS infrastructure using Terragrunt.
+
+   ```bash
+   cd terraform/environments/prod
+   terragrunt init
+   terragrunt apply -auto-approve
+   ```
+
+   **What This Step Does:**
+
+   - **Provisions AWS Resources:** VPC, subnets, EKS cluster, IAM roles, security groups, and Kinesis streams.
+   - **Manages Remote State:** Uses S3 bucket and DynamoDB table for storing Terraform state and managing locks.
+
+   **Note:** Ensure that the S3 bucket (`poseidon-terraform-state`) and DynamoDB table (`poseidon-terraform-lock`) exist. If not, create them via the AWS Console or using Terraform scripts.
+
+### Deploy Applications to AWS EKS
+
+1. **Deploy Applications via Helm Charts**
+
+   After the infrastructure is up, deploy the Kubernetes applications using the deploy script.
+
+   ```bash
+   cd ../../scripts
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+   **What the Deploy Script Does:**
+
+   1. **Configures kubectl:** Sets up the kubeconfig to interact with the newly created EKS cluster.
+   2. **Applies Kubernetes Manifests:** Deployments, Services, ConfigMaps, Secrets, PersistentVolumeClaims.
+   3. **Installs NGINX Ingress Controller:** Manages external access to services.
+   4. **Deploys CronJobs:** Sets up scheduled backups for MongoDB.
+   5. **Deploys ELK Stack and DataDog:** For logging and monitoring.
+   6. **Deploys Poseidon Application via Helm:** Manages API, Frontend, MongoDB, and Logstash.
+
+   **Important:** Replace `<YOUR_DATADOG_API_KEY>` and `<YOUR_DATadog_APP_KEY>` in the `deploy.sh` script with your actual DataDog credentials before executing.
+
+2. **Verify Deployments**
+
+   Check the status of your deployments to ensure everything is running correctly.
+
+   ```bash
+   kubectl get pods -A
+   ```
+
+   You should see pods for the API, MongoDB, Frontend, Logstash, Ingress Controller, Elasticsearch, Kibana, DataDog agents, etc., all in the `Running` state.
+
+### Accessing the Application on AWS
+
+1. **Retrieve Ingress URL**
+
+   After successful deployment, access your application via the Load Balancer URL associated with your Ingress. You can find the Load Balancer DNS in the `poseidon-ingress` service.
+
+   ```bash
+   kubectl get ingress poseidon-ingress
+   ```
+
+   **Example Output:**
+
+   ```
+   NAME               CLASS    HOSTS              ADDRESS                                         PORTS   AGE
+   poseidon-ingress   <none>   your-domain.com     abcdef1234567890.elb.amazonaws.com             80      10m
+   ```
+
+2. **Navigate to the Application**
+
+   - **Frontend:** `http://your-domain.com`
+   - **API:** `http://your-domain.com/api`
+
+   Replace `your-domain.com` with your actual domain name or the DNS provided by AWS.
+
+---
+
+## 6. Environment Variables
 
 Environment variables are crucial for configuring the Poseidon API, especially for sensitive information like database credentials and JWT keys. Properly setting up environment variables ensures secure and flexible deployments across different environments.
 
@@ -518,7 +628,7 @@ Jwt__Audience=PoseidonClient
 - **MongoDB Configuration:** Same as the root `.env` file.
 - **Local Development MongoDB Connection String:**
   - `DatabaseConfig__ConnectionString`: Connection string for Poseidon API to connect to a locally running MongoDB instance.
-  
+
 - **JWT Configuration:** Same as the root `.env` file.
 
 ### Setting Up Environment Files for Kubernetes
@@ -529,7 +639,7 @@ When deploying to Kubernetes, environment variables are managed via **ConfigMaps
 
 ---
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 Deployment can sometimes present challenges. Below are common issues and their resolutions:
 
@@ -635,7 +745,7 @@ Deployment can sometimes present challenges. Below are common issues and their r
 
 ---
 
-## 7. Additional Resources
+## 8. Additional Resources
 
 For further assistance and detailed information, refer to the following resources:
 
@@ -645,14 +755,13 @@ For further assistance and detailed information, refer to the following resource
 - **[Security Guide](./Docs/SecurityGuide.md)**: Best practices and security measures implemented in the project.
 - **[Testing Guide](./Docs/TestingGuide.md)**: Strategies and instructions for testing the Poseidon API.
 - **[Contribution Guide](./Docs/ContributionGuide.md)**: Guidelines for contributing to the project, including coding standards and pull request processes.
-- **[Deployment Guide](#)**: (This current document)
 - **[Poseidon GitHub Repository](https://github.com/cheloghm/Poseidon)**: Access the source code, open issues, and contribute to the project.
 
 ---
 
 # Conclusion
 
-Deploying the **Poseidon API Orchestrator** across different environments enhances its scalability, reliability, and maintainability. Whether you're running it locally for development, containerizing it with Docker for consistency, or orchestrating it with Kubernetes for production-grade deployments, this guide provides the necessary steps to achieve a successful deployment.
+Deploying the **Poseidon API Orchestrator** across different environments enhances its scalability, reliability, and maintainability. Whether you're running it locally for development, containerizing it with Docker for consistency, orchestrating it with Kubernetes for production-grade deployments, or provisioning and deploying to AWS, this guide provides the necessary steps to achieve a successful deployment.
 
 *If you encounter any issues not covered in this guide, please refer to the [Troubleshooting](#troubleshooting) section or reach out through the project's [GitHub Issues](https://github.com/cheloghm/Poseidon/issues).*
 
@@ -675,31 +784,8 @@ This project is licensed under the [MIT License](LICENSE.txt). You are free to u
 
 ---
 
-# Additional Steps and Notes
+# Important Notice
 
-1. **Ensure Accurate File Paths**
-
-   All directory paths in this guide have been updated to match your current project structure. Double-check the paths in your Kubernetes YAML files and Docker Compose configurations to ensure they align with the file locations.
-
-2. **Replace Placeholder Values**
-
-   - **Docker Hub Username**: Replace `your-dockerhub-username` with your actual Docker Hub username in the Docker tagging and pushing commands.
-   - **Minikube IP and Ports**: When accessing services via Minikube, replace `<minikube-ip>` and `<port>` with the actual values obtained from the `minikube service` command.
-
-3. **Secure Your Environment Variables**
-
-   Avoid committing sensitive information like passwords and secret keys to version control. Use Kubernetes Secrets and GitHub Secrets for secure storage.
-
-4. **Maintain Documentation**
-
-   As your project evolves, keep the **Docs** folder updated with the latest information to ensure all guides and documentation remain accurate and helpful.
-
-5. **Test Deployment Processes**
-
-   Regularly test your deployment processes in different environments to identify and resolve potential issues early.
-
-6. **Monitor and Log**
-
-   Implement monitoring and logging solutions to gain insights into the application's performance and quickly identify issues.
+The AWS deployment configurations and guidelines located in the AWS directory are currently unverified and have not undergone comprehensive testing. While I have meticulously designed these instructions and setup scripts to facilitate a seamless deployment process, I advise users to follow the guidelines with careful attention to detail. Should you encounter any challenges or have suggestions for enhancements, your feedback is highly appreciated. Please consider opening an issue or contributing directly to help me refine and validate the AWS deployment workflow.
 
 ---

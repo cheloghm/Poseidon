@@ -1,0 +1,74 @@
+replicaCount: 2
+
+image:
+  repository: cheloghm/poseidon-api
+  tag: latest
+  pullPolicy: Always
+
+frontendImage:
+  repository: cheloghm/poseidon-frontend
+  tag: latest
+  pullPolicy: Always
+
+mongodbImage:
+  repository: cheloghm/poseidon-mongodb-seed
+  tag: "2.7"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  apiPort: 8080
+  frontendPort: 80
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-prod"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:123456789012:certificate/your-certificate-arn"  # Replace with your certificate ARN
+  hosts:
+    - host: your-domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix
+  tls:
+    - secretName: poseidon-tls
+      hosts:
+        - your-domain.com
+
+env:
+  api:
+    IS_K8S: "true"
+    ALLOWED_ORIGINS: "http://localhost:8081,http://poseidon-frontend-service"
+    MONGO_INITDB_ROOT_USERNAME: "rootUser"
+    MONGO_INITDB_ROOT_PASSWORD: "strongPassword"
+    Jwt__Key: "ThisIsASecretKeyWithAtLeast32Characters"
+    Jwt__Issuer: "PoseidonAPI"
+    Jwt__Audience: "PoseidonClient"
+    MONGO_DB_NAME: "PoseidonDB"
+    DatabaseConfig__ConnectionString: "mongodb://rootUser:strongPassword@poseidon-mongodb.default.svc.cluster.local:27017/PoseidonDB?authSource=admin"
+    DatabaseConfig__DatabaseName: "PoseidonDB"
+  frontend:
+    VITE_APP_API_BASE_URL: "/api"
+    API_SERVICE: "poseidon-service"
+    API_PORT: "80"
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+
+persistence:
+  enabled: true
+  storageClass: "aws-ebs"
+  accessMode: ReadWriteOnce
+  size: 5Gi

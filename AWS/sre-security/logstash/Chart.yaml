@@ -1,8 +1,0 @@
-# sre-security/logstash/Chart.yaml
-
-apiVersion: v2
-name: poseidon-logstash
-description: Helm chart for deploying Logstash
-type: application
-version: 1.0.0
-appVersion: "7.10.0"

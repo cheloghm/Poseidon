@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "poseidon-app.fullname" . }}-logstash-service
+  labels:
+    {{- include "poseidon-app.labels" . | nindent 4 }}
+    app: poseidon-logstash
+spec:
+  selector:
+    app: poseidon-logstash
+  ports:
+    - protocol: TCP
+      port: 5044
+      targetPort: 5044
+  type: ClusterIP

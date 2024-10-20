@@ -1,8 +1,0 @@
-# sre-security/datadog/Chart.yaml
-
-apiVersion: v2
-name: poseidon-datadog
-description: Helm chart for deploying DataDog Agent
-type: application
-version: 1.0.0
-appVersion: "7.27.0"

@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-backup-cronjob
+spec:
+  schedule: "0 */6 * * *"  # Runs every 6 hours
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: mongodb-backup
+              image: mongo:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Starting MongoDB backup..."
+                  mongodump --host poseidon-mongodb.default.svc.cluster.local --username $MONGO_INITDB_ROOT_USERNAME --password $MONGO_INITDB_ROOT_PASSWORD --out /backup/dump
+                  echo "Backup completed!"
+              env:
+                - name: MONGO_INITDB_ROOT_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: poseidon-secrets
+                      key: MONGO_INITDB_ROOT_USERNAME
+                - name: MONGO_INITDB_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: poseidon-secrets
+                      key: MONGO_INITDB_ROOT_PASSWORD
+              volumeMounts:
+                - name: backup-volume
+                  mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-volume
+              persistentVolumeClaim:
+                claimName: mongo-pvc

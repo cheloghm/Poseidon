@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poseidon-app.fullname" . }}-logstash
+  labels:
+    {{- include "poseidon-app.labels" . | nindent 4 }}
+    app: poseidon-logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poseidon-logstash
+  template:
+    metadata:
+      labels:
+        app: poseidon-logstash
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:7.10.1
+          ports:
+            - containerPort: 5044
+          volumeMounts:
+            - name: logstash-config
+              mountPath: /usr/share/logstash/pipeline/
+      volumes:
+        - name: logstash-config
+          configMap:
+            name: poseidon-logstash-config

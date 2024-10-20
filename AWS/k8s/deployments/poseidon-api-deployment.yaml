@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poseidon-api
+  labels:
+    app: poseidon
+spec:
+  replicas: 2  # Increased for high availability
+  selector:
+    matchLabels:
+      app: poseidon
+  template:
+    metadata:
+      labels:
+        app: poseidon
+    spec:
+      containers:
+        - name: poseidon-api
+          image: cheloghm/poseidon-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: IS_K8S
+              value: "true"
+            - name: ALLOWED_ORIGINS
+              value: "http://localhost:8081,http://poseidon-frontend-service"
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: MONGO_INITDB_ROOT_PASSWORD
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_KEY
+            - name: Jwt__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_ISSUER
+            - name: Jwt__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: JWT_AUDIENCE
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: poseidon-config
+                  key: MONGO_DB_NAME
+            - name: DatabaseConfig__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: poseidon-secrets
+                  key: DATABASE_CONFIG_CONNECTIONSTRING
+            - name: DatabaseConfig__DatabaseName
+              valueFrom:
+                configMapKeyRef:
+                  name: poseidon-config
+                  key: DatabaseConfig__DatabaseName
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20

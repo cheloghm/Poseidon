@@ -8,10 +8,20 @@ variable "project_name" {
   type        = string
 }
 
+variable "cluster_name" {
+  description = "EKS Cluster name"
+  type        = string
+}
+
+variable "kubernetes_version" {
+  description = "Kubernetes version"
+  type        = string
+  default     = "1.21"
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-  default     = "10.0.0.0/16"
 }
 
 variable "public_subnets" {
@@ -27,4 +37,9 @@ variable "private_subnets" {
 variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
+}
+
+variable "key_name" {
+  description = "SSH key name"
+  type        = string
 }
